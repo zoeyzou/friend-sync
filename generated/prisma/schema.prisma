@@ -15,19 +15,65 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // FriendSync: your relationships
+  friends  Friend[]
+  meetings Meeting[]
+
+  // NextAuth: don't delete these
+  accounts Account[]
+  sessions Session[]
+}
+
+model Friend {
+  id           String    @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  reminderDays Int       @default(30)
+  lastContact  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meetings Meeting[]
+
+  @@unique([userId, email])
+  @@index([userId])
+}
+
+model Meeting {
+  id         String   @id @default(cuid())
+  title      String
+  date       DateTime
+  duration   Int? // minutes
+  location   String?
+  notes      String?
+  calendarId String? // Google Calendar event ID
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdBy   User   @relation(fields: [createdById], references: [id])
-  createdById String
+  friendId String
+  friend   Friend @relation(fields: [friendId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([name])
+  @@index([userId, date])
 }
 
-// Necessary for Next auth
+// ================================
+// NEXTAUTH TABLES (don't touch)
+// ================================
 model Account {
   id                       String  @id @default(cuid())
   userId                   String
@@ -53,17 +99,6 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
 }
 
 model VerificationToken {
