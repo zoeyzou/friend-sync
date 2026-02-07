@@ -150,7 +150,6 @@ exports.Prisma.MeetingScalarFieldEnum = {
   duration: 'duration',
   location: 'location',
   notes: 'notes',
-  calendarId: 'calendarId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   friendId: 'friendId',

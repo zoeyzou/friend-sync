@@ -15,14 +15,25 @@ export const friendsRouter = createTRPCRouter({
       return db.friend.findMany({
         where: { userId: input.userId },
         orderBy: { lastContact: "desc" },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          reminderDays: true,
-          lastContact: true,
-          createdAt: true,
+        include: {
+          _count: { select: { meetings: true } },
+        },
+      });
+    }),
+
+  byId: publicProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .query(async ({ input }) => {
+      return db.friend.findFirst({
+        where: {
+          id: input.id,
+          userId: input.userId,
+        },
+        include: {
+          meetings: {
+            orderBy: { date: "desc" },
+            take: 10,
+          },
         },
       });
     }),
@@ -41,6 +52,37 @@ export const friendsRouter = createTRPCRouter({
         data: {
           ...input,
           userId: ctx.session.user.id,
+        },
+      });
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        email: z.string().optional(),
+        phone: z.string().optional(),
+        reminderDays: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return db.friend.updateMany({
+        where: {
+          id: input.id,
+          userId: ctx.session.user.id!,
+        },
+        data: input,
+      });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return db.friend.deleteMany({
+        where: {
+          id: input.id,
+          userId: ctx.session.user.id!,
         },
       });
     }),

@@ -58,7 +58,7 @@ model Meeting {
   duration     Int?     // minutes
   location     String?
   notes        String?
-  calendarId   String?  // Google Calendar event ID
+  // calendarId   String?  // Google Calendar event ID
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

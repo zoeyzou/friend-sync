@@ -3785,7 +3785,6 @@ export namespace Prisma {
     duration: number | null
     location: string | null
     notes: string | null
-    calendarId: string | null
     createdAt: Date | null
     updatedAt: Date | null
     friendId: string | null
@@ -3799,7 +3798,6 @@ export namespace Prisma {
     duration: number | null
     location: string | null
     notes: string | null
-    calendarId: string | null
     createdAt: Date | null
     updatedAt: Date | null
     friendId: string | null
@@ -3813,7 +3811,6 @@ export namespace Prisma {
     duration: number
     location: number
     notes: number
-    calendarId: number
     createdAt: number
     updatedAt: number
     friendId: number
@@ -3837,7 +3834,6 @@ export namespace Prisma {
     duration?: true
     location?: true
     notes?: true
-    calendarId?: true
     createdAt?: true
     updatedAt?: true
     friendId?: true
@@ -3851,7 +3847,6 @@ export namespace Prisma {
     duration?: true
     location?: true
     notes?: true
-    calendarId?: true
     createdAt?: true
     updatedAt?: true
     friendId?: true
@@ -3865,7 +3860,6 @@ export namespace Prisma {
     duration?: true
     location?: true
     notes?: true
-    calendarId?: true
     createdAt?: true
     updatedAt?: true
     friendId?: true
@@ -3966,7 +3960,6 @@ export namespace Prisma {
     duration: number | null
     location: string | null
     notes: string | null
-    calendarId: string | null
     createdAt: Date
     updatedAt: Date
     friendId: string
@@ -3999,7 +3992,6 @@ export namespace Prisma {
     duration?: boolean
     location?: boolean
     notes?: boolean
-    calendarId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     friendId?: boolean
@@ -4015,7 +4007,6 @@ export namespace Prisma {
     duration?: boolean
     location?: boolean
     notes?: boolean
-    calendarId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     friendId?: boolean
@@ -4031,7 +4022,6 @@ export namespace Prisma {
     duration?: boolean
     location?: boolean
     notes?: boolean
-    calendarId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     friendId?: boolean
@@ -4047,14 +4037,13 @@ export namespace Prisma {
     duration?: boolean
     location?: boolean
     notes?: boolean
-    calendarId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     friendId?: boolean
     userId?: boolean
   }
 
-  export type MeetingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "date" | "duration" | "location" | "notes" | "calendarId" | "createdAt" | "updatedAt" | "friendId" | "userId", ExtArgs["result"]["meeting"]>
+  export type MeetingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "date" | "duration" | "location" | "notes" | "createdAt" | "updatedAt" | "friendId" | "userId", ExtArgs["result"]["meeting"]>
   export type MeetingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     friend?: boolean | FriendDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -4081,7 +4070,6 @@ export namespace Prisma {
       duration: number | null
       location: string | null
       notes: string | null
-      calendarId: string | null
       createdAt: Date
       updatedAt: Date
       friendId: string
@@ -4517,7 +4505,6 @@ export namespace Prisma {
     readonly duration: FieldRef<"Meeting", 'Int'>
     readonly location: FieldRef<"Meeting", 'String'>
     readonly notes: FieldRef<"Meeting", 'String'>
-    readonly calendarId: FieldRef<"Meeting", 'String'>
     readonly createdAt: FieldRef<"Meeting", 'DateTime'>
     readonly updatedAt: FieldRef<"Meeting", 'DateTime'>
     readonly friendId: FieldRef<"Meeting", 'String'>
@@ -8199,7 +8186,6 @@ export namespace Prisma {
     duration: 'duration',
     location: 'location',
     notes: 'notes',
-    calendarId: 'calendarId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     friendId: 'friendId',
@@ -8500,7 +8486,6 @@ export namespace Prisma {
     duration?: IntNullableFilter<"Meeting"> | number | null
     location?: StringNullableFilter<"Meeting"> | string | null
     notes?: StringNullableFilter<"Meeting"> | string | null
-    calendarId?: StringNullableFilter<"Meeting"> | string | null
     createdAt?: DateTimeFilter<"Meeting"> | Date | string
     updatedAt?: DateTimeFilter<"Meeting"> | Date | string
     friendId?: StringFilter<"Meeting"> | string
@@ -8516,7 +8501,6 @@ export namespace Prisma {
     duration?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
-    calendarId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     friendId?: SortOrder
@@ -8535,7 +8519,6 @@ export namespace Prisma {
     duration?: IntNullableFilter<"Meeting"> | number | null
     location?: StringNullableFilter<"Meeting"> | string | null
     notes?: StringNullableFilter<"Meeting"> | string | null
-    calendarId?: StringNullableFilter<"Meeting"> | string | null
     createdAt?: DateTimeFilter<"Meeting"> | Date | string
     updatedAt?: DateTimeFilter<"Meeting"> | Date | string
     friendId?: StringFilter<"Meeting"> | string
@@ -8551,7 +8534,6 @@ export namespace Prisma {
     duration?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
-    calendarId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     friendId?: SortOrder
@@ -8573,7 +8555,6 @@ export namespace Prisma {
     duration?: IntNullableWithAggregatesFilter<"Meeting"> | number | null
     location?: StringNullableWithAggregatesFilter<"Meeting"> | string | null
     notes?: StringNullableWithAggregatesFilter<"Meeting"> | string | null
-    calendarId?: StringNullableWithAggregatesFilter<"Meeting"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Meeting"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Meeting"> | Date | string
     friendId?: StringWithAggregatesFilter<"Meeting"> | string
@@ -8951,7 +8932,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     friend: FriendCreateNestedOneWithoutMeetingsInput
@@ -8965,7 +8945,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     friendId: string
@@ -8979,7 +8958,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     friend?: FriendUpdateOneRequiredWithoutMeetingsNestedInput
@@ -8993,7 +8971,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     friendId?: StringFieldUpdateOperationsInput | string
@@ -9007,7 +8984,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     friendId: string
@@ -9021,7 +8997,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -9033,7 +9008,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     friendId?: StringFieldUpdateOperationsInput | string
@@ -9536,7 +9510,6 @@ export namespace Prisma {
     duration?: SortOrder
     location?: SortOrder
     notes?: SortOrder
-    calendarId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     friendId?: SortOrder
@@ -9554,7 +9527,6 @@ export namespace Prisma {
     duration?: SortOrder
     location?: SortOrder
     notes?: SortOrder
-    calendarId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     friendId?: SortOrder
@@ -9568,7 +9540,6 @@ export namespace Prisma {
     duration?: SortOrder
     location?: SortOrder
     notes?: SortOrder
-    calendarId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     friendId?: SortOrder
@@ -10243,7 +10214,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     friend: FriendCreateNestedOneWithoutMeetingsInput
@@ -10256,7 +10226,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     friendId: string
@@ -10391,7 +10360,6 @@ export namespace Prisma {
     duration?: IntNullableFilter<"Meeting"> | number | null
     location?: StringNullableFilter<"Meeting"> | string | null
     notes?: StringNullableFilter<"Meeting"> | string | null
-    calendarId?: StringNullableFilter<"Meeting"> | string | null
     createdAt?: DateTimeFilter<"Meeting"> | Date | string
     updatedAt?: DateTimeFilter<"Meeting"> | Date | string
     friendId?: StringFilter<"Meeting"> | string
@@ -10497,7 +10465,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutMeetingsInput
@@ -10510,7 +10477,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
@@ -10865,7 +10831,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     friendId: string
@@ -10934,7 +10899,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     friend?: FriendUpdateOneRequiredWithoutMeetingsNestedInput
@@ -10947,7 +10911,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     friendId?: StringFieldUpdateOperationsInput | string
@@ -10960,7 +10923,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     friendId?: StringFieldUpdateOperationsInput | string
@@ -11036,7 +10998,6 @@ export namespace Prisma {
     duration?: number | null
     location?: string | null
     notes?: string | null
-    calendarId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
@@ -11049,7 +11010,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutMeetingsNestedInput
@@ -11062,7 +11022,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
@@ -11075,7 +11034,6 @@ export namespace Prisma {
     duration?: NullableIntFieldUpdateOperationsInput | number | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    calendarId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string

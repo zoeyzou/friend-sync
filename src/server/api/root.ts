@@ -1,5 +1,6 @@
 import { friendsRouter } from "~/server/api/routers/friends";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { meetingsRouter } from "./routers/meetings";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   friends: friendsRouter,
+  meetings: meetingsRouter,
 });
 
 // export type definition of API
