@@ -37,6 +37,7 @@ import { format } from "date-fns";
 const addFriendSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
+  reminderDays: z.coerce.number().min(1).max(365),
 });
 
 const editFriendSchema = z.object({
@@ -69,7 +70,7 @@ export default function FriendsPage() {
   // === ADD FRIEND FORM ===
   const addForm = useForm<z.infer<typeof addFriendSchema>>({
     resolver: zodResolver(addFriendSchema),
-    defaultValues: { name: "", email: "" },
+    defaultValues: { name: "", email: "", reminderDays: 30 },
   });
 
   const addMutation = api.friends.create.useMutation({
@@ -181,7 +182,11 @@ export default function FriendsPage() {
               <Form {...addForm}>
                 <form
                   onSubmit={addForm.handleSubmit((values) => {
-                    addMutation.mutate(values);
+                    addMutation.mutate({
+                      name: values.name,
+                      email: values.email || undefined,
+                      reminderDays: values.reminderDays,
+                    });
                   })}
                   className="space-y-6"
                 >
@@ -215,6 +220,20 @@ export default function FriendsPage() {
                             placeholder="john@example.com"
                             {...field}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={addForm.control}
+                    name="reminderDays"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Reminder Days</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} className="h-12" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
