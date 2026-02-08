@@ -46,11 +46,20 @@ export const authConfig = {
   adapter: PrismaAdapter(db),
   trustHost: true,
   callbacks: {
-    session: ({ session, user }) => ({
+    jwt({ token, user, account, profile }) {
+      if (profile?.id) {
+        token.id = profile.id; // Capture Discord user ID
+      }
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.id as string,
       },
     }),
   },
