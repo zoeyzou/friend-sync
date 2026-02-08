@@ -2,81 +2,436 @@
 
 import { useSession } from "next-auth/react";
 import { api } from "~/trpc/react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "~/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "~/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Edit3, Trash2, Calendar } from "lucide-react";
 import { useState } from "react";
+import type { Friend } from "generated/prisma";
+
+// === FORM SCHEMAS ===
+const addFriendSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+});
+
+const editFriendSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+});
 
 export default function FriendsPage() {
-  const { data: session } = useSession();
-  const { data: friends, isLoading } = api.friends.getAll.useQuery(
-    { userId: session?.user?.id! },
+  const { data: session, status } = useSession();
+
+  const {
+    data: friends,
+    refetch,
+    isLoading: friendsLoading,
+  } = api.friends.getAll.useQuery(
+    {
+      userId: session?.user?.id!,
+    },
     { enabled: !!session?.user?.id },
   );
 
-  const [name, setName] = useState("");
+  // === ADD FRIEND FORM ===
+  const addForm = useForm<z.infer<typeof addFriendSchema>>({
+    resolver: zodResolver(addFriendSchema),
+    defaultValues: { name: "", email: "" },
+  });
 
-  if (!session) return <div>Sign in</div>;
+  const addMutation = api.friends.create.useMutation({
+    onSuccess: () => {
+      addForm.reset();
+      refetch();
+    },
+  });
+
+  // === EDIT FRIEND FORM ===
+  const editForm = useForm<z.infer<typeof editFriendSchema>>({
+    resolver: zodResolver(editFriendSchema),
+    defaultValues: { name: "", email: "" },
+  });
+
+  const editMutation = api.friends.update.useMutation({
+    onSuccess: () => {
+      editForm.reset();
+      refetch();
+    },
+  });
+
+  const deleteMutation = api.friends.delete.useMutation({
+    onSuccess: () => refetch(),
+  });
+
+  const handleEdit = async (friend: Friend) => {
+    editForm.reset({
+      name: friend.name,
+      email: friend.email || "",
+    });
+  };
+
+  if (status === "loading") {
+    return <Loader2 className="h-12 w-12 animate-spin mx-auto mt-48" />;
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-6">Sign in required</h1>
+          <a
+            href="/api/auth/signin"
+            className="bg-green-600 hover:bg-green-700 px-8 py-4 rounded-2xl font-bold text-white shadow-lg"
+          >
+            Sign In →
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-8 space-y-6">
-      <header className="flex justify-between items-start">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Friends</h1>
-          <p className="text-muted-foreground">
-            {friends?.length || 0} tracked
-          </p>
+    <>
+      <div className="container mx-auto p-8 max-w-4xl space-y-8 min-h-screen pb-24">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-12">
+          <div>
+            <h1 className="text-5xl font-bold bg-linear-to-r from-green-400 to-primary bg-clip-text text-transparent">
+              Friends
+            </h1>
+            <p className="text-xl text-muted-foreground mt-2">
+              {friendsLoading
+                ? "Loading..."
+                : `${friends?.length || 0} tracked`}
+            </p>
+          </div>
+
+          {/* Add Trigger */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="lg"
+                className="shadow-xl hover:shadow-2xl h-14 px-8 text-lg"
+              >
+                <Plus className="h-6 w-6 mr-3" />
+                Add Friend
+              </Button>
+            </DialogTrigger>
+
+            {/* ADD FORM w/ React Hook Form */}
+            <DialogContent className="sm:max-w-lg bg-amber-50">
+              <DialogHeader>
+                <DialogTitle className="text-2xl">Add New Friend</DialogTitle>
+                <DialogDescription>
+                  Track meetings and get automatic reminders to stay connected.
+                </DialogDescription>
+              </DialogHeader>
+
+              <Form {...addForm}>
+                <form
+                  onSubmit={addForm.handleSubmit((values) => {
+                    addMutation.mutate(values);
+                  })}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={addForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="John Doe"
+                            {...field}
+                            className="h-12"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={addForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email (optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="john@example.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <DialogFooter className="gap-3 pt-4">
+                    <DialogClose asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1 h-12"
+                      >
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      type="submit"
+                      className="flex-1 h-12"
+                      disabled={
+                        addForm.formState.isSubmitting || addMutation.isPending
+                      }
+                    >
+                      {addMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        "Add Friend"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
-        {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
-      </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">Add Friend</CardTitle>
-          <CardDescription>Track new connections</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // addFriendMutation.mutate({ name });
-            }}
-            className="flex gap-2"
-          >
-            <Input
-              placeholder="Friend's name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit">Add</Button>
-          </form>
-        </CardContent>
-      </Card>
+        {/* Friends List */}
+        <div className="grid gap-6">
+          {friends?.map((friend) => (
+            <Card
+              key={friend.id}
+              className="group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-0 bg-linear-to-br from-white/5 to-white/2 backdrop-blur-xl"
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <CardTitle className="text-2xl font-bold text-primary group-hover:text-green-400 transition-colors">
+                      {friend.name}
+                    </CardTitle>
+                    {friend.email && (
+                      <p className="text-muted-foreground mt-2 text-lg">
+                        {friend.email}
+                      </p>
+                    )}
+                  </div>
 
-      <div className="grid gap-4">
-        {friends?.map((friend) => (
-          <Card key={friend.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg">{friend.name}</CardTitle>
-              <Badge>{friend.reminderDays}d</Badge>
-            </CardHeader>
-            <CardContent>
-              {friend.email && (
-                <p className="text-sm text-muted-foreground">{friend.email}</p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <Badge variant="secondary" className="text-sm">
+                      {friend._count?.meetings || 0} meetings
+                    </Badge>
+                    <Badge
+                      variant={friend.lastContact ? "default" : "destructive"}
+                      className="text-sm px-4 py-2 shadow-md"
+                    >
+                      {friend.lastContact
+                        ? `Last: ${(new Date(friend.lastContact), "MMM dd")}`
+                        : `${friend.reminderDays}d reminder`}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="pt-0 pb-6">
+                <div className="flex gap-3 opacity-70 group-hover:opacity-100 transition-all duration-300 flex-wrap">
+                  {/* EDIT */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 h-12 px-6"
+                        onClick={() => handleEdit(friend)}
+                      >
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </DialogTrigger>
+
+                    {/* EDIT FORM w/ React Hook Form */}
+                    <DialogContent className="bg-amber-50 sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Edit {friend.name}</DialogTitle>
+                      </DialogHeader>
+
+                      <Form {...editForm}>
+                        <form
+                          onSubmit={editForm.handleSubmit((values) => {
+                            editMutation.mutate({
+                              id: friend.id,
+                              ...values,
+                            });
+                          })}
+                          className="space-y-6"
+                        >
+                          <FormField
+                            control={editForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Name</FormLabel>
+                                <FormControl>
+                                  <Input {...field} className="h-12" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={editForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                  <Input type="email" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <DialogFooter className="gap-3">
+                            <DialogClose asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1"
+                              >
+                                Cancel
+                              </Button>
+                            </DialogClose>
+                            <Button
+                              type="submit"
+                              className="flex-1"
+                              disabled={
+                                editForm.formState.isSubmitting ||
+                                editMutation.isPending
+                              }
+                            >
+                              {editMutation.isPending ? (
+                                <>
+                                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                  Saving
+                                </>
+                              ) : (
+                                "Save Changes"
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* DELETE */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1 h-12 px-6"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-3 text-destructive">
+                          <Trash2 className="h-6 w-6" />
+                          Delete {friend.name}?
+                        </DialogTitle>
+                        <DialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete:
+                          <div className="mt-4 space-y-1 text-sm">
+                            <div>• {friend.name}</div>
+                            <div>• {friend._count?.meetings || 0} meetings</div>
+                          </div>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button
+                          variant="destructive"
+                          onClick={() =>
+                            deleteMutation.mutate({ id: friend.id })
+                          }
+                        >
+                          Delete Forever
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* QUICK ACTIONS */}
+                  <Button variant="outline" size="sm" className="h-12 px-6">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Log Meeting
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* EMPTY STATE */}
+        {friends?.length === 0 && !friendsLoading && (
+          <div className="text-center py-32 space-y-8">
+            <div className="text-8xl opacity-20 mb-8">👥</div>
+            <h2 className="text-4xl font-bold text-muted-foreground mb-4">
+              No friends tracked yet
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-lg mx-auto mb-8">
+              Add your first friend to automatically track meetings and get
+              smart reminders when it's time to reconnect.
+            </p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="lg" className="shadow-2xl h-16 px-12 text-xl">
+                  <Plus className="h-8 w-8 mr-4" />
+                  Add your first friend
+                </Button>
+              </DialogTrigger>
+              {/* Add dialog same as header */}
+            </Dialog>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }
