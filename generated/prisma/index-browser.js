@@ -156,6 +156,16 @@ exports.Prisma.MeetingScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.ReminderScalarFieldEnum = {
+  id: 'id',
+  message: 'message',
+  dueDate: 'dueDate',
+  dismissed: 'dismissed',
+  createdAt: 'createdAt',
+  friendId: 'friendId',
+  userId: 'userId'
+};
+
 exports.Prisma.AccountScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -205,6 +215,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   Friend: 'Friend',
   Meeting: 'Meeting',
+  Reminder: 'Reminder',
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken'
