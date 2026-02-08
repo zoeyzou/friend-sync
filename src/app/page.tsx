@@ -17,7 +17,7 @@ export default async function Home() {
       orderBy: { lastContact: "desc" },
     });
   } else {
-    redirect("/api/auth/signin");
+    redirect("/auth/signin");
   }
 
   return (
