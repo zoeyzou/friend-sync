@@ -17,6 +17,10 @@ export const friendsRouter = createTRPCRouter({
         orderBy: { lastContact: "desc" },
         include: {
           _count: { select: { meetings: true } },
+          meetings: {
+            orderBy: { date: "desc" },
+            take: 3,
+          },
         },
       });
     }),

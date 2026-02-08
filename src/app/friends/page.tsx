@@ -25,11 +25,13 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Loader2, Plus, Edit3, Trash2, Calendar } from "lucide-react";
-import { useState } from "react";
 import type { Friend } from "generated/prisma";
+import { DatePicker } from "./_components";
+import { format } from "date-fns";
 
 // === FORM SCHEMAS ===
 const addFriendSchema = z.object({
@@ -40,6 +42,14 @@ const addFriendSchema = z.object({
 const editFriendSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
+});
+
+const logMeetingSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  date: z.coerce.date(),
+  duration: z.coerce.number().min(5, "Duration at least 5 mins"),
+  location: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export default function FriendsPage() {
@@ -92,6 +102,24 @@ export default function FriendsPage() {
       email: friend.email || "",
     });
   };
+
+  const logMeetingForm = useForm<z.infer<typeof logMeetingSchema>>({
+    resolver: zodResolver(logMeetingSchema),
+    defaultValues: {
+      title: "",
+      date: new Date(),
+      duration: 0,
+      location: "",
+      notes: "",
+    },
+  });
+
+  const logMutation = api.meetings.create.useMutation({
+    onSuccess: () => {
+      logMeetingForm.reset();
+      refetch();
+    },
+  });
 
   if (status === "loading") {
     return <Loader2 className="h-12 w-12 animate-spin mx-auto mt-48" />;
@@ -255,7 +283,7 @@ export default function FriendsPage() {
                       className="text-sm px-4 py-2 shadow-md"
                     >
                       {friend.lastContact
-                        ? `Last: ${(new Date(friend.lastContact), "MMM dd")}`
+                        ? `Last: ${format(new Date(friend.lastContact), "MMM dd")}`
                         : `${friend.reminderDays}d reminder`}
                     </Badge>
                   </div>
@@ -263,6 +291,20 @@ export default function FriendsPage() {
               </CardHeader>
 
               <CardContent className="pt-0 pb-6">
+                {friend.meetings.length > 0 && (
+                  <ul className="space-y-2 mb-4">
+                    {friend.meetings.map((meeting) => (
+                      <li
+                        key={meeting.id}
+                        className="text-sm text-slate-400 flex justify-between px-2 py-1 rounded-md bg-slate-100/50"
+                      >
+                        <span>{meeting.title}</span>
+                        <span>{format(meeting.date, "MMM dd")}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 <div className="flex gap-3 opacity-70 group-hover:opacity-100 transition-all duration-300 flex-wrap">
                   {/* EDIT */}
                   <Dialog>
@@ -398,11 +440,133 @@ export default function FriendsPage() {
                     </DialogContent>
                   </Dialog>
 
-                  {/* QUICK ACTIONS */}
-                  <Button variant="outline" size="sm" className="h-12 px-6">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Log Meeting
-                  </Button>
+                  {/* Log meeting */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-12 px-6">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Log Meeting
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-2xl">
+                          Log meeting with friend {friend.name}
+                        </DialogTitle>
+                        <DialogDescription>
+                          Log a meeting with {friend.name} to stay connected.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <Form {...logMeetingForm}>
+                        <form
+                          onSubmit={logMeetingForm.handleSubmit((values) => {
+                            console.log(values);
+                            logMutation.mutate({
+                              friendId: friend.id,
+                              ...values,
+                            });
+                          })}
+                          className="space-y-6"
+                        >
+                          <FormField
+                            control={logMeetingForm.control}
+                            name="title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel htmlFor="input-required">
+                                  Title
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} className="h-12" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={logMeetingForm.control}
+                            name="date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Date</FormLabel>
+                                <FormControl>
+                                  <DatePicker
+                                    selectedDate={field.value}
+                                    selectDate={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={logMeetingForm.control}
+                            name="duration"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Duration</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    {...field}
+                                    className="h-12"
+                                    placeholder="Duration in minutes"
+                                    min={0}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={logMeetingForm.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Location</FormLabel>
+                                <FormControl>
+                                  <Input {...field} className="h-12" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={logMeetingForm.control}
+                            name="notes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} className="h-12" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button
+                              type="submit"
+                              disabled={logMutation.isPending}
+                            >
+                              {logMutation.isPending ? (
+                                <>
+                                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                  Logging...
+                                </>
+                              ) : (
+                                "Log Meeting"
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>
