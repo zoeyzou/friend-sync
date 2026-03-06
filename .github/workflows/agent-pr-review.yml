@@ -101,6 +101,14 @@ jobs:
             echo "REVIEW_EOF"
           } >> $GITHUB_OUTPUT
 
+      - name: Apply AI Suggestions
+        if: always() && steps.review.outputs.review_body != ''
+        uses: parkerbxyz/suggest-changes@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          file: ai-fixes.patch  # Generate this from LLM response
+          commit_message: 'AI: Apply suggested fixes'
+
       - name: Comment on PR with review
         if: always() && steps.review.outputs.review_body != ''
         uses: actions/github-script@v7
