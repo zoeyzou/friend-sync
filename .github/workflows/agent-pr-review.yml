@@ -103,7 +103,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const body = JSON.parse(`"${process.env.REVIEW_BODY_JSON}"`);
+            const body = process.env.REVIEW_BODY_JSON || '';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
