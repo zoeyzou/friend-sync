@@ -70,7 +70,7 @@ jobs:
 
           # Concatenate prompt header + diff and build JSON payload via stdin
           cat /tmp/agent_prompt_header.txt "${{ steps.diff.outputs.diff_path }}" | \
-            jq -Rs --arg model "meta-llama/llama-3.1-8b-instruct:free" '{
+            jq -Rs --arg model "openrouter/free" '{
               model: $model,
               messages: [
                 {role: "system", content: "You are a careful, pragmatic code reviewer."},
