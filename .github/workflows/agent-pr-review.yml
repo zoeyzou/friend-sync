@@ -38,22 +38,47 @@ jobs:
             exit 0
           fi
 
-          SUMMARY_PROMPT=$'You are a senior engineer reviewing a pull request for a Next.js + tRPC + Prisma project called FriendTrack.\n\nGoals:\n- Identify issues in SECURITY, SCALABILITY/PERFORMANCE, CODE REUSE, and MAINTAINABILITY.\n- Focus on the changes visible in the diff only.\n- Be concrete and reference files/lines when possible.\n\nOutput format (markdown):\n\n## Overview\n- 1–3 bullets summarizing what this PR appears to change.\n\n## Findings\n\n### 🔴 Critical\n- [file.tsx] Short title – explanation and concrete fix, if any. If none, say \"None.\"\n\n### 🟠 Major\n- [file.ts] Short title – explanation and improvement suggestion. If none, say \"None.\"\n\n### 🟡 Minor\n- [file.tsx] Short title – explanation and suggestion. Group nitpicks.\n\n## Recommendations\n- 2–5 bullet points with concrete next steps (tests to add, refactors, safeguards).\n\nNow review the following unified diff:'
+          cat << 'EOF' > /tmp/agent_prompt_header.txt
+You are a senior engineer reviewing a pull request for a Next.js + tRPC + Prisma project called FriendTrack.
 
-          CONTENT=$(cat "${{ steps.diff.outputs.diff_path }}")
+Goals:
+- Identify issues in SECURITY, SCALABILITY/PERFORMANCE, CODE REUSE, and MAINTAINABILITY.
+- Focus on the changes visible in the diff only.
+- Be concrete and reference files/lines when possible.
 
-          JSON=$(jq -n \
-            --arg prompt "$SUMMARY_PROMPT\n\n$CONTENT" \
-            --arg model "meta-llama/llama-3.1-8b-instruct:free" \
-            '{
+Output format (markdown):
+
+## Overview
+- 1–3 bullets summarizing what this PR appears to change.
+
+## Findings
+
+### 🔴 Critical
+- [file.tsx] Short title – explanation and concrete fix, if any. If none, say "None."
+
+### 🟠 Major
+- [file.ts] Short title – explanation and improvement suggestion. If none, say "None."
+
+### 🟡 Minor
+- [file.tsx] Short title – explanation and suggestion. Group nitpicks.
+
+## Recommendations
+- 2–5 bullet points with concrete next steps (tests to add, refactors, safeguards).
+
+Now review the following unified diff:
+EOF
+
+          # Concatenate prompt header + diff and build JSON payload via stdin
+          cat /tmp/agent_prompt_header.txt "${{ steps.diff.outputs.diff_path }}" | \
+            jq -Rs --arg model "meta-llama/llama-3.1-8b-instruct:free" '{
               model: $model,
               messages: [
                 {role: "system", content: "You are a careful, pragmatic code reviewer."},
-                {role: "user", content: $prompt}
+                {role: "user", content: .}
               ],
               max_tokens: 4096,
               temperature: 0.2
-            }')
+            }' > /tmp/agent_review_payload.json
 
           RESPONSE=$(curl -s \
             https://openrouter.ai/api/v1/chat/completions \
@@ -61,7 +86,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "HTTP-Referer: https://github.com/zoeyzou/friend-sync" \
             -H "X-Title: FriendTrack PR Review" \
-            -d "$JSON")
+            -d @/tmp/agent_review_payload.json)
 
           BODY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Agent review failed: no response."')
 
