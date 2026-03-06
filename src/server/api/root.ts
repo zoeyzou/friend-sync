@@ -1,4 +1,5 @@
 import { friendsRouter } from "~/server/api/routers/friends";
+import { remindersRouter } from "~/server/api/routers/reminders";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { meetingsRouter } from "./routers/meetings";
 
@@ -8,8 +9,9 @@ import { meetingsRouter } from "./routers/meetings";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  friends: friendsRouter,
-  meetings: meetingsRouter,
+	friends: friendsRouter,
+	meetings: meetingsRouter,
+	reminders: remindersRouter,
 });
 
 // export type definition of API
