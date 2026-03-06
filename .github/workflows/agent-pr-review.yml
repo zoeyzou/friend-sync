@@ -34,42 +34,13 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           if [ -z "$OPENROUTER_API_KEY" ]; then
-            echo "review_body=Agent review skipped (missing OPENROUTER_API_KEY)." >> $GITHUB_OUTPUT
+            echo "review_body=Agent review skipped (missing OPENROUTER_API_KEY)." >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          SUMMARY_PROMPT=$(cat << 'EOF'
-You are a senior engineer reviewing a pull request for a Next.js + tRPC + Prisma project called FriendTrack.
+          SUMMARY_PROMPT=$'You are a senior engineer reviewing a pull request for a Next.js + tRPC + Prisma project called FriendTrack.\n\nGoals:\n- Identify issues in SECURITY, SCALABILITY/PERFORMANCE, CODE REUSE, and MAINTAINABILITY.\n- Focus on the changes visible in the diff only.\n- Be concrete and reference files/lines when possible.\n\nOutput format (markdown):\n\n## Overview\n- 1–3 bullets summarizing what this PR appears to change.\n\n## Findings\n\n### 🔴 Critical\n- [file.tsx] Short title – explanation and concrete fix, if any. If none, say \"None.\"\n\n### 🟠 Major\n- [file.ts] Short title – explanation and improvement suggestion. If none, say \"None.\"\n\n### 🟡 Minor\n- [file.tsx] Short title – explanation and suggestion. Group nitpicks.\n\n## Recommendations\n- 2–5 bullet points with concrete next steps (tests to add, refactors, safeguards).\n\nNow review the following unified diff:'
 
-Goals:
-- Identify issues in SECURITY, SCALABILITY/PERFORMANCE, CODE REUSE, and MAINTAINABILITY.
-- Focus on the changes visible in the diff only.
-- Be concrete and reference files/lines when possible.
-
-Output format (markdown):
-
-## Overview
-- 1–3 bullets summarizing what this PR appears to change.
-
-## Findings
-
-### 🔴 Critical
-- [file.tsx] Short title – explanation and concrete fix, if any. If none, say "None."
-
-### 🟠 Major
-- [file.ts] Short title – explanation and improvement suggestion. If none, say "None."
-
-### 🟡 Minor
-- [file.tsx] Short title – explanation and suggestion. Group nitpicks.
-
-## Recommendations
-- 2–5 bullet points with concrete next steps (tests to add, refactors, safeguards).
-
-Now review the following unified diff:
-EOF
-          )
-
-          CONTENT=$(cat ${{ steps.diff.outputs.diff_path }})
+          CONTENT=$(cat "${{ steps.diff.outputs.diff_path }}")
 
           JSON=$(jq -n \
             --arg prompt "$SUMMARY_PROMPT\n\n$CONTENT" \
