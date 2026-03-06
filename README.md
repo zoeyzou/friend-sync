@@ -138,7 +138,7 @@ npm run preview      # Production preview
 
 ## 🌍 Live Demo
 
-**[friend-tracker.onrender.com](https://friend-tracker.onrender.com)**
+**[friend-sync.onrender.com](https://friend-sync.onrender.com)**
 
 
 ## 🤝 Contributing
