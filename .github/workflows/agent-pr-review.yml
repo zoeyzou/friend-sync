@@ -1,0 +1,118 @@
+name: Agent PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  agent-review:
+    name: AI code review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Get diff for this PR
+        id: diff
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git diff --minimal --unified=3 origin/${{ github.base_ref }}...HEAD > pr.diff
+          echo "diff_path=pr.diff" >> $GITHUB_OUTPUT
+
+      - name: Run LLM review
+        id: review
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "review_body=Agent review skipped (missing OPENROUTER_API_KEY)." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          SUMMARY_PROMPT=$(cat << 'EOF'
+You are a senior engineer reviewing a pull request for a Next.js + tRPC + Prisma project called FriendTrack.
+
+Goals:
+- Identify issues in SECURITY, SCALABILITY/PERFORMANCE, CODE REUSE, and MAINTAINABILITY.
+- Focus on the changes visible in the diff only.
+- Be concrete and reference files/lines when possible.
+
+Output format (markdown):
+
+## Overview
+- 1–3 bullets summarizing what this PR appears to change.
+
+## Findings
+
+### 🔴 Critical
+- [file.tsx] Short title – explanation and concrete fix, if any. If none, say "None."
+
+### 🟠 Major
+- [file.ts] Short title – explanation and improvement suggestion. If none, say "None."
+
+### 🟡 Minor
+- [file.tsx] Short title – explanation and suggestion. Group nitpicks.
+
+## Recommendations
+- 2–5 bullet points with concrete next steps (tests to add, refactors, safeguards).
+
+Now review the following unified diff:
+EOF
+          )
+
+          CONTENT=$(cat ${{ steps.diff.outputs.diff_path }})
+
+          JSON=$(jq -n \
+            --arg prompt "$SUMMARY_PROMPT\n\n$CONTENT" \
+            --arg model "meta-llama/llama-3.1-8b-instruct:free" \
+            '{
+              model: $model,
+              messages: [
+                {role: "system", content: "You are a careful, pragmatic code reviewer."},
+                {role: "user", content: $prompt}
+              ],
+              max_tokens: 4096,
+              temperature: 0.2
+            }')
+
+          RESPONSE=$(curl -s \
+            https://openrouter.ai/api/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "HTTP-Referer: https://github.com/zoeyzou/friend-sync" \
+            -H "X-Title: FriendTrack PR Review" \
+            -d "$JSON")
+
+          BODY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Agent review failed: no response."')
+
+          if [ "$BODY" = "null" ] || [ -z "$BODY" ]; then
+            BODY="Agent review failed: invalid API response."
+          fi
+
+          BODY_ESCAPED=$(printf '%s\n' "$BODY" | jq -Rs .)
+          echo "review_body=$BODY_ESCAPED" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR with review
+        if: always() && steps.review.outputs.review_body != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = JSON.parse(`"${process.env.REVIEW_BODY_JSON}"`);
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+        env:
+          REVIEW_BODY_JSON: ${{ steps.review.outputs.review_body }}
