@@ -88,10 +88,10 @@ jobs:
             -H "X-Title: FriendTrack PR Review" \
             -d @/tmp/agent_review_payload.json)
 
-          BODY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Agent review failed: no response."')
-
-          if [ "$BODY" = "null" ] || [ -z "$BODY" ]; then
-            BODY="Agent review failed: invalid API response."
+          BODY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')
+          if [ -z "$BODY" ]; then
+            ERR=$(echo "$RESPONSE" | jq -r '.error.message // .error // "No content in response."' 2>/dev/null)
+            BODY="Agent review failed: ${ERR:-no response.}"
           fi
 
           BODY_ESCAPED=$(printf '%s\n' "$BODY" | jq -Rs .)
