@@ -1,28 +1,42 @@
 "use client";
-import { signIn, getSession } from "next-auth/react";
+import { Users } from "lucide-react";
+import { getSession, signIn } from "next-auth/react";
 import { useEffect } from "react";
-import { Button } from "~/components/ui/button";
 
 export default function SignIn() {
-  useEffect(() => {
-    getSession().then((session) => {
-      if (session) window.location.href = "/friends";
-    });
-  }, []);
+	useEffect(() => {
+		getSession().then((session) => {
+			if (session) window.location.href = "/overview";
+		});
+	}, []);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-500 to-purple-600">
-      <div className="bg-white/80 backdrop-blur p-8 rounded-2xl shadow-2xl">
-        <h1 className="text-4xl font-bold text-center mb-8 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          FriendSync
-        </h1>
-        <Button
-          onClick={() => signIn("discord")}
-          className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white py-6 text-lg font-semibold"
-        >
-          🚀 Continue with Discord
-        </Button>
-      </div>
-    </div>
-  );
+	return (
+		<div className="flex min-h-screen items-center justify-center bg-background p-4">
+			<div className="w-full max-w-md">
+				<div className="mb-8 text-center">
+					<div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+						<Users className="h-8 w-8 text-primary" />
+					</div>
+					<h1 className="mb-2 font-semibold text-3xl">
+						Welcome to FriendTrack
+					</h1>
+					<p className="text-muted-foreground">
+						Track your meetups and stay connected
+					</p>
+				</div>
+
+				<div className="rounded-lg border border-border bg-card p-6 sm:p-8">
+					<h2 className="mb-6 font-semibold text-2xl">Sign In</h2>
+
+					<button
+						className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-primary-foreground transition-colors hover:bg-primary/90"
+						onClick={() => signIn("discord", { callbackUrl: "/overview" })}
+						type="button"
+					>
+						Continue with Discord
+					</button>
+				</div>
+			</div>
+		</div>
+	);
 }
