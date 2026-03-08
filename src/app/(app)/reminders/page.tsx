@@ -23,16 +23,12 @@ export default function RemindersPage() {
 
 		const overdue = withNext
 			.filter((entry) => entry.isOverdue)
-			.sort(
-				(a, b) => a.nextReminder.getTime() - b.nextReminder.getTime(),
-			)
+			.sort((a, b) => a.nextReminder.getTime() - b.nextReminder.getTime())
 			.map((entry) => entry.friend);
 
 		const upcoming = withNext
 			.filter((entry) => !entry.isOverdue)
-			.sort(
-				(a, b) => a.nextReminder.getTime() - b.nextReminder.getTime(),
-			)
+			.sort((a, b) => a.nextReminder.getTime() - b.nextReminder.getTime())
 			.map((entry) => entry.friend);
 
 		return { overdue, upcoming };

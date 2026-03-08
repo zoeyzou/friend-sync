@@ -70,10 +70,18 @@ export const meetingsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+			if (!userId) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Missing user in session.",
+				});
+			}
+
 			const friend = await db.friend.findFirst({
 				where: {
 					id: input.friendId,
-					userId: ctx.session.user.id!,
+					userId,
 				},
 				select: { id: true },
 			});
@@ -93,7 +101,7 @@ export const meetingsRouter = createTRPCRouter({
 			return db.meeting.create({
 				data: {
 					...input,
-					userId: ctx.session.user.id!,
+					userId,
 				},
 			});
 		}),
@@ -110,10 +118,18 @@ export const meetingsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+			if (!userId) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Missing user in session.",
+				});
+			}
+
 			return db.meeting.update({
 				where: {
 					id: input.id,
-					userId: ctx.session.user.id!,
+					userId,
 				},
 				data: input,
 			});
@@ -122,10 +138,18 @@ export const meetingsRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+			if (!userId) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Missing user in session.",
+				});
+			}
+
 			return db.meeting.delete({
 				where: {
 					id: input.id,
-					userId: ctx.session.user.id!,
+					userId,
 				},
 			});
 		}),

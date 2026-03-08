@@ -51,4 +51,3 @@ export function MeetupCard(props: {
 		</div>
 	);
 }
-

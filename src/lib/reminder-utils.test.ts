@@ -32,9 +32,13 @@ describe("reminder-utils", () => {
 	});
 
 	it("throws when neither lastContact nor createdAt is present", () => {
-		const friend = {
+		const friend: {
+			reminderDays: number;
+			createdAt?: Date | string | null;
+			lastContact?: Date | string | null;
+		} = {
 			reminderDays: 7,
-		} as any;
+		};
 
 		expect(() => getNextReminderDate(friend)).toThrowError(
 			/lastContact or createdAt/,
@@ -52,4 +56,3 @@ describe("reminder-utils", () => {
 		expect(isOverdue(friend, now)).toBe(true);
 	});
 });
-

@@ -1,15 +1,12 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { OverviewStats } from "~/components/figma/overview-stats";
 import { FriendCard } from "~/entities/friend";
 import { MeetupCard } from "~/entities/meeting";
-import { OverviewStats } from "~/components/figma/overview-stats";
 import { api } from "~/trpc/react";
 
 export default function OverviewPage() {
 	const utils = api.useUtils();
-	const { data: session } = useSession();
-	const userId = session?.user?.id;
 
 	const { data: stats } = api.reminders.stats.useQuery();
 	const { data: overdueData } = api.reminders.overdueFriends.useQuery({

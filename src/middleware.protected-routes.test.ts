@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { middleware } from "./middleware";
 
@@ -9,7 +9,7 @@ vi.mock("next-auth/jwt", () => ({
 
 import { getToken } from "next-auth/jwt";
 
-const mockedGetToken = getToken as unknown as ReturnType<typeof vi.fn>;
+const mockedGetToken = getToken as unknown as vi.Mock;
 
 async function runThroughMiddleware(path: string) {
 	const url = new URL(path, "http://localhost");
@@ -23,7 +23,7 @@ describe("middleware protected routes", () => {
 	});
 
 	it("redirects unauthenticated users from protected routes", async () => {
-		mockedGetToken.mockResolvedValue(null as any);
+		mockedGetToken.mockResolvedValue(null);
 
 		for (const path of ["/overview", "/friends", "/meetups", "/reminders"]) {
 			const response = await runThroughMiddleware(path);
@@ -34,7 +34,7 @@ describe("middleware protected routes", () => {
 	});
 
 	it("allows unauthenticated access to public routes", async () => {
-		mockedGetToken.mockResolvedValue(null as any);
+		mockedGetToken.mockResolvedValue(null);
 
 		for (const path of ["/auth/signin", "/"]) {
 			const response = await runThroughMiddleware(path);
@@ -43,7 +43,7 @@ describe("middleware protected routes", () => {
 	});
 
 	it("allows authenticated access to protected routes", async () => {
-		mockedGetToken.mockResolvedValue({ sub: "user-1" } as any);
+		mockedGetToken.mockResolvedValue({ sub: "user-1" });
 
 		for (const path of ["/overview", "/friends", "/meetups", "/reminders"]) {
 			const response = await runThroughMiddleware(path);
@@ -51,4 +51,3 @@ describe("middleware protected routes", () => {
 		}
 	});
 });
-

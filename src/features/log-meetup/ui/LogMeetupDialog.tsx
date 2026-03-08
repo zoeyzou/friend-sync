@@ -89,9 +89,7 @@ export function LogMeetupDialog(props: {
 								friendId: values.friendId,
 								date,
 								title: "Meetup",
-								location: values.location?.trim()
-									? values.location
-									: undefined,
+								location: values.location?.trim() ? values.location : undefined,
 								notes: values.notes?.trim() ? values.notes : undefined,
 							});
 						})}
@@ -187,4 +185,3 @@ export function LogMeetupDialog(props: {
 		</Dialog>
 	);
 }
-

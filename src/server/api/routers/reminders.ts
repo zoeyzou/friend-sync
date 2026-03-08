@@ -175,7 +175,7 @@ export const remindersRouter = createTRPCRouter({
 	 */
 	markContacted: protectedProcedure
 		.input(z.object({ friendIds: z.array(z.string()).min(1).max(100) }))
-		.mutation(async ({ ctx, input }) => {
+		.mutation(async ({ input }) => {
 			const today = new Date();
 
 			return await db.$transaction(

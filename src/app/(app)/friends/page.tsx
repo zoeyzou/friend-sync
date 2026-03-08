@@ -7,7 +7,6 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { FriendCard } from "~/entities/friend";
 import {
 	Dialog,
 	DialogClose,
@@ -16,6 +15,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "~/components/ui/dialog";
+import { FriendCard } from "~/entities/friend";
 import { api } from "~/trpc/react";
 
 const editSchema = z.object({

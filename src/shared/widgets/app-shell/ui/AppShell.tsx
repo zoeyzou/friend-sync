@@ -5,12 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
-
-import { api } from "~/trpc/react";
-import { isOverdue } from "~/lib/reminder-utils";
-import { DashboardActionsProvider } from "~/shared/lib/dashboard-actions";
 import { AddFriendDialog } from "~/features/add-friend";
 import { LogMeetupDialog } from "~/features/log-meetup";
+import { isOverdue } from "~/lib/reminder-utils";
+import { DashboardActionsProvider } from "~/shared/lib/dashboard-actions";
+import { api } from "~/trpc/react";
 
 type TabKey = "overview" | "friends" | "meetups" | "reminders";
 
@@ -198,4 +197,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 		</DashboardActionsProvider>
 	);
 }
-

@@ -72,10 +72,15 @@ export const friendsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+			if (!userId) {
+				throw new Error("Missing user in session");
+			}
+
 			return db.friend.updateMany({
 				where: {
 					id: input.id,
-					userId: ctx.session.user.id!,
+					userId,
 				},
 				data: input,
 			});
@@ -84,10 +89,15 @@ export const friendsRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+			if (!userId) {
+				throw new Error("Missing user in session");
+			}
+
 			return db.friend.deleteMany({
 				where: {
 					id: input.id,
-					userId: ctx.session.user.id!,
+					userId,
 				},
 			});
 		}),

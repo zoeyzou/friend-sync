@@ -23,4 +23,3 @@ export function getNextReminderDate(friend: ReminderSource): Date {
 export function isOverdue(friend: ReminderSource, now = new Date()): boolean {
 	return getNextReminderDate(friend) < now;
 }
-
