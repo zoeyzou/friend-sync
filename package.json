@@ -21,6 +21,7 @@
 		"test": "vitest",
 		"test:protected": "vitest run src/middleware.protected-routes.test.ts",
 		"start": "next start",
+		"prepare": "husky install",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -58,6 +59,7 @@
 		"@types/node": "^20.14.10",
 		"@types/react": "^19.2.13",
 		"@types/react-dom": "^19.2.3",
+		"husky": "^9.1.7",
 		"jsdom": "^28.1.0",
 		"postcss": "^8.5.3",
 		"prisma": "^6.6.0",

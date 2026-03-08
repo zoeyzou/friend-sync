@@ -37,7 +37,12 @@ describe("FriendCard", () => {
 	it("calls openLogMeetup when clicked", async () => {
 		render(<FriendCard friend={baseFriend} />);
 
-		const [cardButton] = screen.getAllByRole("button");
+		const buttons = screen.getAllByRole("button");
+		const cardButton = buttons[0];
+		if (!cardButton) {
+			throw new Error("Expected FriendCard to render at least one button");
+		}
+
 		await userEvent.click(cardButton);
 		expect(openLogMeetup).toHaveBeenCalledWith("friend-1");
 	});

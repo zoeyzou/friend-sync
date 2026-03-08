@@ -9,9 +9,9 @@ import {
 	Dialog,
 	DialogClose,
 	DialogContent,
+	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogDescription,
 	DialogTitle,
 } from "~/components/ui/dialog";
 import { api } from "~/trpc/react";
