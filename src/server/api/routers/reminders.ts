@@ -30,7 +30,9 @@ export const remindersRouter = createTRPCRouter({
 		}> = [];
 
 		for (const friend of candidates) {
-			const daysSince = differenceInDays(today, friend.lastContact!);
+			if (!friend.lastContact) continue;
+
+			const daysSince = differenceInDays(today, friend.lastContact);
 			if (daysSince >= friend.reminderDays) {
 				overdue.push({
 					friendId: friend.id,
@@ -85,7 +87,9 @@ export const remindersRouter = createTRPCRouter({
 			// JS: Precise overdue + pagination
 			const overdueFriends = candidates
 				.map((friend) => {
-					const daysSince = differenceInDays(today, friend.lastContact!);
+					if (!friend.lastContact) return null;
+
+					const daysSince = differenceInDays(today, friend.lastContact);
 					return {
 						...friend,
 						daysSince,
@@ -93,6 +97,7 @@ export const remindersRouter = createTRPCRouter({
 						isOverdue: daysSince >= friend.reminderDays,
 					};
 				})
+				.filter((friend): friend is NonNullable<typeof friend> => !!friend)
 				.filter((friend) => friend.isOverdue)
 				.slice(input.skip, input.skip + input.take);
 

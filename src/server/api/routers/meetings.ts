@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
 	createTRPCRouter,
@@ -57,9 +58,23 @@ export const meetingsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			// Update friend's lastContact
+			const friend = await db.friend.findFirst({
+				where: {
+					id: input.friendId,
+					userId: ctx.session.user.id!,
+				},
+				select: { id: true },
+			});
+
+			if (!friend) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Friend not found for this user.",
+				});
+			}
+
 			await db.friend.update({
-				where: { id: input.friendId },
+				where: { id: friend.id },
 				data: { lastContact: input.date },
 			});
 
