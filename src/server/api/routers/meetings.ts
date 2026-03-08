@@ -12,10 +12,12 @@ export const meetingsRouter = createTRPCRouter({
 		.input(
 			z.object({
 				take: z.number().min(1).max(200).optional(),
+				skip: z.number().min(0).optional(),
 			}),
 		)
 		.query(async ({ ctx, input }) => {
 			const take = input.take ?? 50;
+			const skip = input.skip ?? 0;
 
 			return db.meeting.findMany({
 				where: {
@@ -23,6 +25,7 @@ export const meetingsRouter = createTRPCRouter({
 				},
 				orderBy: { date: "desc" },
 				take,
+				skip,
 				include: {
 					friend: {
 						select: {
