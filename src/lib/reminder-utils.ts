@@ -2,13 +2,22 @@ import { addDays } from "date-fns";
 
 type ReminderSource = {
 	reminderDays: number;
-	createdAt: Date | string;
+	createdAt?: Date | string | null;
 	lastContact?: Date | string | null;
 };
 
-export function getNextReminderDate(friend: ReminderSource): Date {
+function getBaseDate(friend: ReminderSource): Date {
 	const base = friend.lastContact ?? friend.createdAt;
-	return addDays(new Date(base), friend.reminderDays);
+	if (!base) {
+		throw new Error(
+			"ReminderSource requires at least one of lastContact or createdAt",
+		);
+	}
+	return new Date(base);
+}
+
+export function getNextReminderDate(friend: ReminderSource): Date {
+	return addDays(getBaseDate(friend), friend.reminderDays);
 }
 
 export function isOverdue(friend: ReminderSource, now = new Date()): boolean {

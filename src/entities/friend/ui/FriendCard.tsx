@@ -4,7 +4,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import type { Friend } from "generated/prisma";
 import { Calendar, Clock, User } from "lucide-react";
 
-import { useDashboardActions } from "~/app/(app)/_components/dashboard-actions";
+import { useDashboardActions } from "~/shared/lib/dashboard-actions";
 import { getNextReminderDate, isOverdue } from "~/lib/reminder-utils";
 
 export function FriendCard(props: {

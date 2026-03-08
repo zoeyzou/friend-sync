@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 
 import { api } from "~/trpc/react";
 import { isOverdue } from "~/lib/reminder-utils";
-import { DashboardActionsProvider } from "~/app/(app)/_components/dashboard-actions";
+import { DashboardActionsProvider } from "~/shared/lib/dashboard-actions";
 import { AddFriendDialog } from "~/features/add-friend";
 import { LogMeetupDialog } from "~/features/log-meetup";
 

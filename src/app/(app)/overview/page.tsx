@@ -1,11 +1,9 @@
 "use client";
 
-import { addDays } from "date-fns";
 import { useSession } from "next-auth/react";
 import { FriendCard } from "~/entities/friend";
 import { MeetupCard } from "~/entities/meeting";
 import { OverviewStats } from "~/components/figma/overview-stats";
-import { getNextReminderDate, isOverdue } from "~/lib/reminder-utils";
 import { api } from "~/trpc/react";
 
 export default function OverviewPage() {
@@ -14,13 +12,13 @@ export default function OverviewPage() {
 	const userId = session?.user?.id;
 
 	const { data: stats } = api.reminders.stats.useQuery();
-	const { data: friends = [] } = api.friends.getAll.useQuery(
-		{ userId: userId ?? "" },
-		{ enabled: !!userId },
-	);
-
-	const { data: recentMeetups = [] } = api.meetings.getAll.useQuery({
+	const { data: overdueData } = api.reminders.overdueFriends.useQuery({
+		take: 4,
+		skip: 0,
+	});
+	const { data: recentMeetupsResult } = api.meetings.getAll.useQuery({
 		take: 5,
+		skip: 0,
 	});
 	const deleteMeetup = api.meetings.delete.useMutation({
 		onSuccess: async () => {
@@ -30,28 +28,8 @@ export default function OverviewPage() {
 		},
 	});
 
-	const computed = (() => {
-		const now = new Date();
-		const withNext = friends.map((friend) => {
-			const nextReminder = getNextReminderDate(friend);
-			return { friend, nextReminder, isOverdue: isOverdue(friend, now) };
-		});
-
-		const overdueFriends = withNext
-			.filter((entry) => entry.isOverdue)
-			.sort(
-				(a, b) => a.nextReminder.getTime() - b.nextReminder.getTime(),
-			)
-			.map((entry) => entry.friend);
-
-		const upcoming7 = withNext.filter(
-			(entry) =>
-				!entry.isOverdue &&
-				entry.nextReminder <= addDays(now, 7),
-		).length;
-
-		return { upcoming7, overdueFriends };
-	})();
+	const overdueFriends = overdueData?.friends ?? [];
+	const recentMeetups = recentMeetupsResult?.items ?? [];
 
 	return (
 		<div className="space-y-6">
@@ -61,19 +39,19 @@ export default function OverviewPage() {
 					meetupsThisMonth={stats?.meetupsLast30Days ?? 0}
 					totalFriends={stats?.totalFriends ?? 0}
 					totalMeetups={stats?.totalMeetups ?? 0}
-					upcomingReminders={computed.overdueFriends.length}
+					upcomingReminders={overdueFriends.length}
 				/>
 			</div>
 
 			{/* Overdue Reminders */}
-			{computed.overdueFriends.length > 0 && (
+			{overdueFriends.length > 0 && (
 				<div>
 					<h3 className="mb-3 font-medium text-destructive">
 						Overdue Reminders
 					</h3>
 					<div className="grid gap-4 sm:grid-cols-2">
-						{computed.overdueFriends.slice(0, 4).map((f) => (
-							<FriendCard friend={f} key={f.id} />
+						{overdueFriends.map((friend) => (
+							<FriendCard friend={friend} key={friend.id} />
 						))}
 					</div>
 				</div>

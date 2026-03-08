@@ -1,47 +1,54 @@
-import assert from "node:assert/strict";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-import { middleware } from "../src/middleware";
+import { middleware } from "./middleware";
 
-async function testRedirect(path: string, shouldRedirect: boolean) {
+vi.mock("next-auth/jwt", () => ({
+	getToken: vi.fn(),
+}));
+
+import { getToken } from "next-auth/jwt";
+
+const mockedGetToken = getToken as unknown as ReturnType<typeof vi.fn>;
+
+async function runThroughMiddleware(path: string) {
 	const url = new URL(path, "http://localhost");
 	const request = new NextRequest(url);
-
-	const response = await middleware(request);
-
-	const redirected = response.redirected;
-	const location = response.headers.get("location");
-
-	if (shouldRedirect) {
-		assert.equal(redirected, true, `${path} should redirect`);
-		assert.equal(
-			location,
-			"http://localhost/auth/signin",
-			`${path} should redirect to /auth/signin`,
-		);
-	} else {
-		assert.equal(redirected, false, `${path} should not redirect`);
-	}
+	return middleware(request);
 }
 
-async function run() {
-	// Unauthenticated requests (no auth cookie) should be treated as no session.
-	await testRedirect("/overview", true);
-	await testRedirect("/friends", true);
-	await testRedirect("/meetups", true);
-	await testRedirect("/reminders", true);
+describe("middleware protected routes", () => {
+	beforeEach(() => {
+		mockedGetToken.mockReset();
+	});
 
-	// Public routes remain accessible.
-	await testRedirect("/auth/signin", false);
-	await testRedirect("/", false);
+	it("redirects unauthenticated users from protected routes", async () => {
+		mockedGetToken.mockResolvedValue(null as any);
 
-	// eslint-disable-next-line no-console
-	console.log("Protected routes middleware tests passed.");
-}
+		for (const path of ["/overview", "/friends", "/meetups", "/reminders"]) {
+			const response = await runThroughMiddleware(path);
+			expect(response.headers.get("location")).toBe(
+				"http://localhost/auth/signin",
+			);
+		}
+	});
 
-run().catch((error) => {
-	// eslint-disable-next-line no-console
-	console.error(error);
-	process.exit(1);
+	it("allows unauthenticated access to public routes", async () => {
+		mockedGetToken.mockResolvedValue(null as any);
+
+		for (const path of ["/auth/signin", "/"]) {
+			const response = await runThroughMiddleware(path);
+			expect(response.headers.get("location")).toBeNull();
+		}
+	});
+
+	it("allows authenticated access to protected routes", async () => {
+		mockedGetToken.mockResolvedValue({ sub: "user-1" } as any);
+
+		for (const path of ["/overview", "/friends", "/meetups", "/reminders"]) {
+			const response = await runThroughMiddleware(path);
+			expect(response.redirected).toBe(false);
+		}
+	});
 });
 

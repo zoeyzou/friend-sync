@@ -11,13 +11,16 @@ export default function MeetupsPage() {
 
 	const utils = api.useUtils();
 	const {
-		data: meetups = [],
+		data,
 		isLoading,
 		isFetching,
 	} = api.meetings.getAll.useQuery({
 		take: pageSize,
 		skip: page * pageSize,
 	});
+
+	const meetups = data?.items ?? [];
+	const total = data?.total ?? 0;
 
 	const deleteMeetup = api.meetings.delete.useMutation({
 		onSuccess: async () => {
@@ -27,7 +30,7 @@ export default function MeetupsPage() {
 		},
 	});
 
-	const hasNextPage = meetups.length === pageSize;
+	const hasNextPage = (page + 1) * pageSize < total;
 
 	return (
 		<div>

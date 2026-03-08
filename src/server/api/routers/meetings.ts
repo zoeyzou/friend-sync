@@ -19,22 +19,31 @@ export const meetingsRouter = createTRPCRouter({
 			const take = input.take ?? 50;
 			const skip = input.skip ?? 0;
 
-			return db.meeting.findMany({
-				where: {
-					userId: ctx.session.user.id,
-				},
-				orderBy: { date: "desc" },
-				take,
-				skip,
-				include: {
-					friend: {
-						select: {
-							id: true,
-							name: true,
+			const [items, total] = await Promise.all([
+				db.meeting.findMany({
+					where: {
+						userId: ctx.session.user.id,
+					},
+					orderBy: { date: "desc" },
+					take,
+					skip,
+					include: {
+						friend: {
+							select: {
+								id: true,
+								name: true,
+							},
 						},
 					},
-				},
-			});
+				}),
+				db.meeting.count({
+					where: {
+						userId: ctx.session.user.id,
+					},
+				}),
+			]);
+
+			return { items, total };
 		}),
 
 	getByFriend: publicProcedure
@@ -101,7 +110,7 @@ export const meetingsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			return db.meeting.updateMany({
+			return db.meeting.update({
 				where: {
 					id: input.id,
 					userId: ctx.session.user.id!,
@@ -113,7 +122,7 @@ export const meetingsRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			return db.meeting.deleteMany({
+			return db.meeting.delete({
 				where: {
 					id: input.id,
 					userId: ctx.session.user.id!,
