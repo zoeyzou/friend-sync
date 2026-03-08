@@ -9,7 +9,7 @@ vi.mock("next-auth/jwt", () => ({
 
 import { getToken } from "next-auth/jwt";
 
-const mockedGetToken = getToken as unknown as vi.Mock;
+const mockedGetToken = getToken as unknown as ReturnType<typeof vi.fn>;
 
 async function runThroughMiddleware(path: string) {
 	const url = new URL(path, "http://localhost");
