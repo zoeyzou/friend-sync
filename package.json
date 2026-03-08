@@ -18,6 +18,7 @@
 		"dev": "next dev --turbo",
 		"postinstall": "prisma generate",
 		"preview": "next build && next start",
+		"test:protected": "tsx src/middleware.protected-routes.test.ts",
 		"start": "next start",
 		"typecheck": "tsc --noEmit"
 	},
