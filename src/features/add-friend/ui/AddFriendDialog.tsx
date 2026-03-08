@@ -10,6 +10,7 @@ import {
 	DialogContent,
 	DialogFooter,
 	DialogHeader,
+	DialogDescription,
 	DialogTitle,
 } from "~/components/ui/dialog";
 import { api } from "~/trpc/react";
@@ -32,6 +33,8 @@ export function AddFriendDialog(props: {
 		},
 	});
 
+	// Reset form when the dialog is closed so each open starts fresh.
+	// Using the effect keeps the component controlled via `isOpen`.
 	useEffect(() => {
 		if (!props.isOpen) form.reset();
 	}, [props.isOpen, form]);
@@ -52,6 +55,10 @@ export function AddFriendDialog(props: {
 				<div className="p-6">
 					<DialogHeader className="text-left">
 						<DialogTitle className="text-2xl">Add Friend</DialogTitle>
+						<DialogDescription>
+							Create a new friend and configure how often you want to be
+							reminded to meet.
+						</DialogDescription>
 					</DialogHeader>
 
 					<form

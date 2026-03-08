@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { LogMeetupDialog } from "./LogMeetupDialog";
@@ -25,7 +26,7 @@ describe("LogMeetupDialog", () => {
 			/>,
 		);
 
-		fireEvent.click(screen.getByRole("button", { name: /save meetup/i }));
+		await userEvent.click(screen.getByRole("button", { name: /save meetup/i }));
 
 		expect(await screen.findByText(/friend is required/i)).toBeInTheDocument();
 	});

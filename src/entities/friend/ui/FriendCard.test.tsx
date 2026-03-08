@@ -1,8 +1,20 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { Friend } from "generated/prisma";
 import { describe, expect, it, vi } from "vitest";
-import { DashboardActionsProvider } from "~/shared/lib/dashboard-actions";
 import { FriendCard } from "./FriendCard";
+
+const openLogMeetup = vi.fn();
+
+vi.mock("~/shared/lib/dashboard-actions", () => ({
+	useDashboardActions: () => ({
+		openAddFriend: vi.fn(),
+		openLogMeetup,
+	}),
+	DashboardActionsProvider: (props: { children: React.ReactNode }) => (
+		<>{props.children}</>
+	),
+}));
 
 const baseFriend = {
 	id: "friend-1",
@@ -17,29 +29,16 @@ const baseFriend = {
 
 describe("FriendCard", () => {
 	it("shows friend name and relative last contact", () => {
-		render(
-			<DashboardActionsProvider
-				value={{ openAddFriend: vi.fn(), openLogMeetup: vi.fn() }}
-			>
-				<FriendCard friend={baseFriend} />
-			</DashboardActionsProvider>,
-		);
+		render(<FriendCard friend={baseFriend} />);
 
 		expect(screen.getByText("Alice")).toBeInTheDocument();
 	});
 
-	it("calls openLogMeetup when clicked", () => {
-		const openLogMeetup = vi.fn();
+	it("calls openLogMeetup when clicked", async () => {
+		render(<FriendCard friend={baseFriend} />);
 
-		render(
-			<DashboardActionsProvider
-				value={{ openAddFriend: vi.fn(), openLogMeetup }}
-			>
-				<FriendCard friend={baseFriend} />
-			</DashboardActionsProvider>,
-		);
-
-		fireEvent.click(screen.getByRole("button"));
+		const [cardButton] = screen.getAllByRole("button");
+		await userEvent.click(cardButton);
 		expect(openLogMeetup).toHaveBeenCalledWith("friend-1");
 	});
 });

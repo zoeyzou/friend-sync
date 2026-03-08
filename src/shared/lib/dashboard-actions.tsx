@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 
 type DashboardActions = {
 	openAddFriend: () => void;
@@ -11,7 +11,7 @@ const DashboardActionsContext = createContext<DashboardActions | null>(null);
 
 export function DashboardActionsProvider(props: {
 	value: DashboardActions;
-	children: React.ReactNode;
+	children: ReactNode;
 }) {
 	return (
 		<DashboardActionsContext.Provider value={props.value}>

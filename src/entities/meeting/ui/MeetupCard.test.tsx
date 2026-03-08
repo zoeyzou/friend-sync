@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { MeetupCard } from "./MeetupCard";
 
 describe("MeetupCard", () => {
-	it("renders friend name, date, and optional fields", () => {
+	it("renders friend name, date, and optional fields", async () => {
 		const onDelete = vi.fn();
 		const meetup = {
 			id: "meetup-1",
@@ -20,7 +21,7 @@ describe("MeetupCard", () => {
 		expect(screen.getByText("Cafe")).toBeInTheDocument();
 		expect(screen.getByText("Great chat")).toBeInTheDocument();
 
-		fireEvent.click(screen.getByText("Delete"));
+		await userEvent.click(screen.getByText("Delete"));
 		expect(onDelete).toHaveBeenCalledWith("meetup-1");
 	});
 });

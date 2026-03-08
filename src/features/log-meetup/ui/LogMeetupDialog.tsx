@@ -11,6 +11,7 @@ import {
 	DialogContent,
 	DialogFooter,
 	DialogHeader,
+	DialogDescription,
 	DialogTitle,
 } from "~/components/ui/dialog";
 import { api } from "~/trpc/react";
@@ -39,6 +40,8 @@ export function LogMeetupDialog(props: {
 		},
 	});
 
+	// Reset form when the dialog is closed to avoid leaking stale values
+	// across different openings / selected friends.
 	useEffect(() => {
 		if (!props.isOpen) {
 			form.reset({
@@ -66,6 +69,10 @@ export function LogMeetupDialog(props: {
 				<div className="p-6">
 					<DialogHeader className="text-left">
 						<DialogTitle className="text-2xl">Log Meetup</DialogTitle>
+						<DialogDescription>
+							Record a recent meetup so FriendTrack can keep your reminders up
+							to date.
+						</DialogDescription>
 					</DialogHeader>
 
 					<form

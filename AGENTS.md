@@ -94,6 +94,10 @@ Compact guidance for agents working on this repo. Keep answers short and code-fo
 
 ### 7. Testing and workflows
 
+- **Component and feature tests**:
+  - Use Vitest + Testing Library (`vitest.config.mts`, `src/test/setup.ts`) for React components.
+  - Co-locate tests next to implementations (e.g. `FriendCard.test.tsx` beside `FriendCard.tsx`).
+  - Prefer `userEvent` for user interactions over low-level `fireEvent`.
 - **Protected routes**: keep `src/middleware.protected-routes.test.ts` passing when changing middleware or auth flows.
 - **CI expectations**:
   - `npm run typecheck`
@@ -116,4 +120,3 @@ Compact guidance for agents working on this repo. Keep answers short and code-fo
 - TypeScript, strict and explicit where practical; avoid `any`.
 - Prefer small, cohesive modules named by feature and responsibility.
 - Keep comments high-signal: document invariants, domain rules, and non-obvious decisions, not trivial code behavior.
-
