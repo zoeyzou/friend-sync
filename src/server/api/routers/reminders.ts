@@ -6,7 +6,11 @@ import { db } from "~/server/db";
 export const remindersRouter = createTRPCRouter({
 	/**
 	 * 1. generateAll - OVERDUE FRIENDS SUMMARY
-	 * DB: Conservative 60d filter → JS: Precise overdue check
+	 * DB: Conservative 60d filter → JS: Precise overdue check.
+	 * We deliberately do a two-phase approach:
+	 *  - Phase 1 (DB): cheap index scan to find \"maybe overdue\" friends.
+	 *  - Phase 2 (JS): exact day-diff + reminderDays comparison on a small set.
+	 * This keeps the query fast even as the table grows.
 	 */
 	generateAll: protectedProcedure.mutation(async ({ ctx }) => {
 		const today = new Date();

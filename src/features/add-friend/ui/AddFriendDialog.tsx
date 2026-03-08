@@ -121,6 +121,11 @@ export function AddFriendDialog(props: {
 							>
 								{createFriend.isPending ? "Adding..." : "Add Friend"}
 							</button>
+							{createFriend.error?.message && (
+								<p className="text-destructive text-sm">
+									{createFriend.error?.message}
+								</p>
+							)}
 						</DialogFooter>
 					</form>
 				</div>

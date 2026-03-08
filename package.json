@@ -52,9 +52,13 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.5",
 		"@tailwindcss/postcss": "^4.0.15",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^20.14.10",
 		"@types/react": "^19.2.13",
 		"@types/react-dom": "^19.2.3",
+		"jsdom": "^28.1.0",
 		"postcss": "^8.5.3",
 		"prisma": "^6.6.0",
 		"shadcn": "^3.8.4",

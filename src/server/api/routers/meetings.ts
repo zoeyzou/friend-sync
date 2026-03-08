@@ -47,12 +47,20 @@ export const meetingsRouter = createTRPCRouter({
 		}),
 
 	getByFriend: publicProcedure
-		.input(z.object({ friendId: z.string(), userId: z.string() }))
-		.query(async ({ input }) => {
+		.input(z.object({ friendId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.session?.user.id ?? "";
+			if (!userId) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Missing user in session.",
+				});
+			}
+
 			return db.meeting.findMany({
 				where: {
 					friendId: input.friendId,
-					userId: input.userId,
+					userId,
 				},
 				orderBy: { date: "desc" },
 			});

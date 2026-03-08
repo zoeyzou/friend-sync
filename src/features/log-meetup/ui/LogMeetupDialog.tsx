@@ -178,6 +178,11 @@ export function LogMeetupDialog(props: {
 							>
 								{createMeeting.isPending ? "Saving..." : "Save Meetup"}
 							</button>
+							{createMeeting.error?.message && (
+								<p className="text-destructive text-sm">
+									{createMeeting.error.message}
+								</p>
+							)}
 						</DialogFooter>
 					</form>
 				</div>
