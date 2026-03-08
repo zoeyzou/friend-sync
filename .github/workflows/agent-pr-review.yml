@@ -106,8 +106,29 @@ jobs:
         uses: parkerbxyz/suggest-changes@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          file: ai-fixes.patch  # Generate this from LLM response
-          commit_message: 'AI: Apply suggested fixes'
+          file: ai-fixes.patch # Generate this from LLM response
+          commit_message: "AI: Apply suggested fixes"
+
+      - name: Add PR review summary
+        if: always() && steps.review.outputs.review_body != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = process.env.REVIEW_BODY_JSON || '';
+            if (!body) {
+              core.info('No review body to post as PR review.');
+            } else {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                event: 'COMMENT',
+                body,
+              });
+            }
+        env:
+          REVIEW_BODY_JSON: ${{ steps.review.outputs.review_body }}
 
       - name: Comment on PR with review
         if: always() && steps.review.outputs.review_body != ''
