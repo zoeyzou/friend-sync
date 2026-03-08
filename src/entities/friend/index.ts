@@ -1,0 +1,2 @@
+export { FriendCard } from "./ui/FriendCard";
+

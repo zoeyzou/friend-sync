@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { FriendCard } from "~/components/figma/friend-card";
+import { FriendCard } from "~/entities/friend";
 import {
 	Dialog,
 	DialogClose,

@@ -2,9 +2,10 @@
 
 import { addDays } from "date-fns";
 import { useSession } from "next-auth/react";
-import { FriendCard } from "~/components/figma/friend-card";
-import { MeetupCard } from "~/components/figma/meetup-card";
+import { FriendCard } from "~/entities/friend";
+import { MeetupCard } from "~/entities/meeting";
 import { OverviewStats } from "~/components/figma/overview-stats";
+import { getNextReminderDate, isOverdue } from "~/lib/reminder-utils";
 import { api } from "~/trpc/react";
 
 export default function OverviewPage() {
@@ -31,19 +32,22 @@ export default function OverviewPage() {
 
 	const computed = (() => {
 		const now = new Date();
-		const withNext = friends.map((f) => {
-			const base = f.lastContact ?? f.createdAt;
-			const nextReminder = addDays(new Date(base), f.reminderDays);
-			return { friend: f, nextReminder, isOverdue: nextReminder < now };
+		const withNext = friends.map((friend) => {
+			const nextReminder = getNextReminderDate(friend);
+			return { friend, nextReminder, isOverdue: isOverdue(friend, now) };
 		});
 
 		const overdueFriends = withNext
-			.filter((x) => x.isOverdue)
-			.sort((a, b) => a.nextReminder.getTime() - b.nextReminder.getTime())
-			.map((x) => x.friend);
+			.filter((entry) => entry.isOverdue)
+			.sort(
+				(a, b) => a.nextReminder.getTime() - b.nextReminder.getTime(),
+			)
+			.map((entry) => entry.friend);
 
 		const upcoming7 = withNext.filter(
-			(x) => !x.isOverdue && x.nextReminder <= addDays(now, 7),
+			(entry) =>
+				!entry.isOverdue &&
+				entry.nextReminder <= addDays(now, 7),
 		).length;
 
 		return { upcoming7, overdueFriends };

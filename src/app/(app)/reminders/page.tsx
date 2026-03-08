@@ -1,8 +1,8 @@
 "use client";
 
-import { addDays } from "date-fns";
 import { useSession } from "next-auth/react";
-import { FriendCard } from "~/components/figma/friend-card";
+import { FriendCard } from "~/entities/friend";
+import { getNextReminderDate, isOverdue } from "~/lib/reminder-utils";
 import { api } from "~/trpc/react";
 
 export default function RemindersPage() {
@@ -16,21 +16,24 @@ export default function RemindersPage() {
 
 	const { overdue, upcoming } = (() => {
 		const now = new Date();
-		const withNext = friends.map((f) => {
-			const base = f.lastContact ?? f.createdAt;
-			const nextReminder = addDays(new Date(base), f.reminderDays);
-			return { friend: f, nextReminder, isOverdue: nextReminder < now };
+		const withNext = friends.map((friend) => {
+			const nextReminder = getNextReminderDate(friend);
+			return { friend, nextReminder, isOverdue: isOverdue(friend, now) };
 		});
 
 		const overdue = withNext
-			.filter((x) => x.isOverdue)
-			.sort((a, b) => a.nextReminder.getTime() - b.nextReminder.getTime())
-			.map((x) => x.friend);
+			.filter((entry) => entry.isOverdue)
+			.sort(
+				(a, b) => a.nextReminder.getTime() - b.nextReminder.getTime(),
+			)
+			.map((entry) => entry.friend);
 
 		const upcoming = withNext
-			.filter((x) => !x.isOverdue)
-			.sort((a, b) => a.nextReminder.getTime() - b.nextReminder.getTime())
-			.map((x) => x.friend);
+			.filter((entry) => !entry.isOverdue)
+			.sort(
+				(a, b) => a.nextReminder.getTime() - b.nextReminder.getTime(),
+			)
+			.map((entry) => entry.friend);
 
 		return { overdue, upcoming };
 	})();
