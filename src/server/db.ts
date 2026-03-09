@@ -4,10 +4,15 @@ import { PrismaClient } from "../../generated/prisma";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
+const TOKEN_FIELDS = ["refresh_token", "access_token", "id_token"] as const;
 
-function getEncryptionKey(): Buffer | null {
+function getEncryptionKey(): Buffer {
   const key = process.env.ACCOUNT_TOKEN_ENCRYPTION_KEY;
-  if (!key) return null;
+  if (!key) {
+    throw new Error(
+      "ACCOUNT_TOKEN_ENCRYPTION_KEY must be set to enable Account token encryption",
+    );
+  }
   const buf = Buffer.from(key, "base64");
   if (buf.length !== 32) {
     throw new Error(
@@ -20,7 +25,6 @@ function getEncryptionKey(): Buffer | null {
 function encrypt(value: string | null | undefined): string | null | undefined {
   if (!value) return value;
   const key = getEncryptionKey();
-  if (!key) return value;
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
   const ciphertext = Buffer.concat([
@@ -34,7 +38,6 @@ function encrypt(value: string | null | undefined): string | null | undefined {
 function decrypt(value: string | null | undefined): string | null | undefined {
   if (!value) return value;
   const key = getEncryptionKey();
-  if (!key) return value;
   const buf = Buffer.from(value, "base64");
   if (buf.length < IV_LENGTH + 16) return value;
   const iv = buf.subarray(0, IV_LENGTH);
@@ -49,73 +52,118 @@ function decrypt(value: string | null | undefined): string | null | undefined {
   return decrypted.toString("utf8");
 }
 
+function encryptAccountData(data: Record<string, unknown> | undefined) {
+  if (!data) return;
+  for (const field of TOKEN_FIELDS) {
+    const raw = data[field];
+    if (typeof raw === "string" || raw == null) {
+      data[field] = encrypt(raw as string | null | undefined) as unknown;
+    }
+  }
+}
+
+function decryptAccountRecord(record: Record<string, unknown> | null) {
+  if (!record) return;
+  for (const field of TOKEN_FIELDS) {
+    const raw = record[field];
+    if (typeof raw === "string" || raw == null) {
+      record[field] = decrypt(raw as string | null | undefined) as unknown;
+    }
+  }
+}
+
 const createPrismaClient = () => {
-  const client: PrismaClient = new PrismaClient({
+  const client = new PrismaClient({
     log:
       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
 
-  // Middleware to encrypt/decrypt sensitive Account tokens at rest
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-  (client as any).$use(
-    async (params: any, next: (params: any) => Promise<any>) => {
-      if (params.model === "Account") {
-        if (
-          ["create", "createMany", "update", "updateMany", "upsert"].includes(
-            params.action,
-          )
-        ) {
-          const fields = ["refresh_token", "access_token", "id_token"] as const;
-          const applyEncryption = (
-            data: Record<string, unknown> | undefined,
-          ) => {
-            if (!data) return;
-            for (const field of fields) {
-              const raw = data[field];
-              if (typeof raw === "string" || raw == null) {
-                data[field] = encrypt(
-                  raw as string | null | undefined,
-                ) as unknown;
-              }
-            }
-          };
+  // Wrap the Account delegate to transparently encrypt/decrypt token fields.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+  const baseAccount: any = (client as any).account;
 
-          if ("data" in params.args) {
-            if (Array.isArray(params.args.data)) {
-              for (const item of params.args.data) applyEncryption(item);
-            } else {
-              applyEncryption(params.args.data);
-            }
-          }
-        }
-      }
-
-      const result = await next(params);
-
-      if (params.model === "Account") {
-        const fields = ["refresh_token", "access_token", "id_token"] as const;
-        const applyDecryption = (record: Record<string, unknown> | null) => {
-          if (!record) return;
-          for (const field of fields) {
-            const raw = record[field];
-            if (typeof raw === "string" || raw == null) {
-              record[field] = decrypt(
-                raw as string | null | undefined,
-              ) as unknown;
-            }
-          }
-        };
-
-        if (Array.isArray(result)) {
-          for (const row of result) applyDecryption(row);
-        } else if (result && typeof result === "object") {
-          applyDecryption(result as Record<string, unknown>);
-        }
-      }
-
-      return result;
+  const wrappedAccount = {
+    ...baseAccount,
+    async create(args: any) {
+      const nextArgs = { ...args, data: { ...args.data } };
+      encryptAccountData(nextArgs.data);
+      const res = await baseAccount.create(nextArgs);
+      decryptAccountRecord(res);
+      return res;
     },
-  );
+    async createMany(args: any) {
+      if (Array.isArray(args?.data)) {
+        const nextArgs = {
+          ...args,
+          data: args.data.map((d: any) => ({ ...d })),
+        };
+        for (const item of nextArgs.data) encryptAccountData(item);
+        return baseAccount.createMany(nextArgs);
+      }
+      const nextArgs = { ...args, data: { ...args.data } };
+      encryptAccountData(nextArgs.data);
+      return baseAccount.createMany(nextArgs);
+    },
+    async update(args: any) {
+      const nextArgs = { ...args, data: { ...args.data } };
+      encryptAccountData(nextArgs.data);
+      const res = await baseAccount.update(nextArgs);
+      decryptAccountRecord(res);
+      return res;
+    },
+    async updateMany(args: any) {
+      const nextArgs = { ...args, data: { ...args.data } };
+      encryptAccountData(nextArgs.data);
+      return baseAccount.updateMany(nextArgs);
+    },
+    async upsert(args: any) {
+      const nextArgs = {
+        ...args,
+        create: { ...args.create },
+        update: { ...args.update },
+      };
+      encryptAccountData(nextArgs.create);
+      encryptAccountData(nextArgs.update);
+      const res = await baseAccount.upsert(nextArgs);
+      decryptAccountRecord(res);
+      return res;
+    },
+    async findUnique(args: any) {
+      const res = await baseAccount.findUnique(args);
+      if (res) decryptAccountRecord(res);
+      return res;
+    },
+    async findFirst(args: any) {
+      const res = await baseAccount.findFirst(args);
+      if (res) decryptAccountRecord(res);
+      return res;
+    },
+    async findMany(args: any) {
+      const res = await baseAccount.findMany(args);
+      if (Array.isArray(res)) {
+        for (const row of res) decryptAccountRecord(row);
+      }
+      return res;
+    },
+    async delete(args: any) {
+      return baseAccount.delete(args);
+    },
+    async deleteMany(args: any) {
+      return baseAccount.deleteMany(args);
+    },
+    async aggregate(args: any) {
+      return baseAccount.aggregate(args);
+    },
+    async groupBy(args: any) {
+      return baseAccount.groupBy(args);
+    },
+    count(args: any) {
+      return baseAccount.count(args);
+    },
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  (client as any).account = wrappedAccount;
 
   return client;
 };
