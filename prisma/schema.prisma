@@ -100,12 +100,12 @@ model Account {
   type                     String
   provider                 String
   providerAccountId        String
-  refresh_token            String? // @db.Text
-  access_token             String? // @db.Text
+  refresh_token            String? // Encrypted at application layer
+  access_token             String? // Encrypted at application layer
   expires_at               Int?
   token_type               String?
   scope                    String?
-  id_token                 String? // @db.Text
+  id_token                 String? // Encrypted at application layer
   session_state            String?
   user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   refresh_token_expires_in Int?
@@ -125,6 +125,9 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
 
   @@unique([identifier, token])
 }
