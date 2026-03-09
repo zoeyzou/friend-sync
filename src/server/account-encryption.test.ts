@@ -109,6 +109,17 @@ describe("account-encryption", () => {
     expect(decrypted.id_token).toBe("value");
   });
 
+  it("returns plaintext values as-is in decryptToken", () => {
+    const plaintext = "plaintext-value";
+    const encrypted = encryptToken(plaintext) as string;
+    const prefix = "enc:";
+    const body = encrypted.startsWith(prefix)
+      ? encrypted.slice(prefix.length)
+      : encrypted;
+    const decrypted = decryptToken(encrypted);
+    expect(decrypted).toBe(plaintext);
+  });
+
   it("throws on corrupted IV (too short ciphertext)", () => {
     const plaintext = "iv-too-short";
     const encrypted = encryptToken(plaintext) as string;
