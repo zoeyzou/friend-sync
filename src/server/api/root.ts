@@ -9,9 +9,9 @@ import { meetingsRouter } from "./routers/meetings";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-	friends: friendsRouter,
-	meetings: meetingsRouter,
-	reminders: remindersRouter,
+  friends: friendsRouter,
+  meetings: meetingsRouter,
+  reminders: remindersRouter,
 });
 
 // export type definition of API
