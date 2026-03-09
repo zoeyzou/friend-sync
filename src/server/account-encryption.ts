@@ -2,6 +2,12 @@ import crypto from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
+/**
+ * Prefix used to mark values that have been encrypted by this module.
+ * - Values starting with `enc:` are treated as ciphertext and must decrypt successfully,
+ *   otherwise an error is thrown.
+ * - Values without this prefix are treated as legacy/plaintext and are returned as-is.
+ */
 const ENCRYPTION_PREFIX = "enc:";
 
 export const TOKEN_FIELDS = [
@@ -48,18 +54,14 @@ export function decryptToken(
   value: string | null | undefined,
 ): string | null | undefined {
   if (value == null) return value;
-  // Legacy/plaintext values (no prefix) are returned as-is.
+  // Legacy/plaintext values (no prefix) are returned as-is and never decrypted.
   if (!value.startsWith(ENCRYPTION_PREFIX)) return value;
   try {
     const key = getEncryptionKey();
     const encoded = value.slice(ENCRYPTION_PREFIX.length);
     const buf = Buffer.from(encoded, "base64");
     if (buf.length < IV_LENGTH + 16) {
-      // Likely corrupted or legacy data with an `enc:` prefix.
-      // Log and return the original value instead of throwing.
-      // eslint-disable-next-line no-console
-      console.error("Failed to decrypt Account token: ciphertext too short");
-      return value;
+      throw new Error("Ciphertext too short");
     }
     const iv = buf.subarray(0, IV_LENGTH);
     const tag = buf.subarray(IV_LENGTH, IV_LENGTH + 16);
@@ -73,8 +75,6 @@ export function decryptToken(
     return decrypted.toString("utf8");
   } catch (error) {
     console.error("Failed to decrypt Account token", error);
-    // Do not leak ciphertext back to callers; fail hard.
-    // Callers are responsible for catching and handling.
     throw new Error("Failed to decrypt Account token");
   }
 }
@@ -114,13 +114,13 @@ export function decryptAccountRecord<
           copy[field] = decrypted as unknown;
         }
       } catch (error) {
-        // Log but do not rethrow, so legacy/bad token data never breaks auth flows.
+        // Log and rethrow so that corrupted encrypted tokens are never silently accepted.
         // eslint-disable-next-line no-console
         console.error(
           `[AccountEncryption] Failed to decrypt field ${field}`,
           error,
         );
-        // Leave the original value in place; callers decide how to handle it.
+        throw error;
       }
     }
   }

@@ -108,4 +108,19 @@ describe("account-encryption", () => {
     expect(decrypted.access_token).toBeUndefined();
     expect(decrypted.id_token).toBe("value");
   });
+
+  it("throws on corrupted IV (too short ciphertext)", () => {
+    const plaintext = "iv-too-short";
+    const encrypted = encryptToken(plaintext) as string;
+    const prefix = "enc:";
+    const body = encrypted.startsWith(prefix)
+      ? encrypted.slice(prefix.length)
+      : encrypted;
+    // Drop a chunk from the body so total length is too short.
+    const corrupted = `${prefix}${body.slice(0, Math.max(0, body.length - 8))}`;
+
+    expect(() => decryptToken(corrupted)).toThrowError(
+      "Failed to decrypt Account token",
+    );
+  });
 });
