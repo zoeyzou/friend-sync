@@ -99,7 +99,7 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE INDEX "Friend_userId_idx" ON "Friend"("userId");
 
 -- CreateIndex
-CREATE INDEX "Friend_userId_lastContact_idx" ON "Friend"("userId" ASC, "lastContact" DESC, "updatedAt" DESC);
+CREATE INDEX "Friend_userId_lastContact_idx" ON "Friend"("userId" ASC, "lastContact" DESC);
 
 -- CreateIndex
 CREATE INDEX "Friend_userId_reminderDays_idx" ON "Friend"("userId" ASC, "reminderDays" ASC);
