@@ -192,7 +192,8 @@ exports.Prisma.SessionScalarFieldEnum = {
 exports.Prisma.VerificationTokenScalarFieldEnum = {
   identifier: 'identifier',
   token: 'token',
-  expires: 'expires'
+  expires: 'expires',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {

@@ -88,7 +88,8 @@ CREATE TABLE "Session" (
 CREATE TABLE "VerificationToken" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL
+    "expires" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateIndex
@@ -98,7 +99,7 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE INDEX "Friend_userId_idx" ON "Friend"("userId");
 
 -- CreateIndex
-CREATE INDEX "Friend_userId_lastContact_idx" ON "Friend"("userId" ASC, "lastContact" DESC);
+CREATE INDEX "Friend_userId_lastContact_idx" ON "Friend"("userId" ASC, "lastContact" DESC, "updatedAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "Friend_userId_reminderDays_idx" ON "Friend"("userId" ASC, "reminderDays" ASC);
@@ -123,6 +124,9 @@ CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
+
+-- CreateIndex
+CREATE INDEX "VerificationToken_createdAt_idx" ON "VerificationToken"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "Friend" ADD CONSTRAINT "Friend_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
