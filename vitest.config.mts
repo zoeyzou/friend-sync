@@ -5,13 +5,13 @@ import { defineConfig } from "vitest/config";
 const rootDir = fileURLToPath(new URL("./", import.meta.url));
 
 export default defineConfig({
-	test: {
-		environment: "jsdom",
-		setupFiles: "./src/test/setup.ts",
-	},
-	resolve: {
-		alias: {
-			"~": resolve(rootDir, "src"),
-		},
-	},
+  test: {
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+  },
+  resolve: {
+    alias: {
+      "~": resolve(rootDir, "src"),
+    },
+  },
 });

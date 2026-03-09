@@ -22,7 +22,7 @@
   },
   "formatter": {
     "enabled": true,
-    "indentStyle": "tab",
+    "indentStyle": "space",
     "indentWidth": 2 // Tab display width
   },
   "linter": {
@@ -70,14 +70,5 @@
       "cssModules": true,
       "tailwindDirectives": true
     }
-  },
-  "overrides": [
-    {
-      "includes": ["*.json", "*.jsonc", "*.md", "*.yaml", "*.yml"],
-      "formatter": {
-        "indentStyle": "space",
-        "indentWidth": 2
-      }
-    }
-  ]
+  }
 }
