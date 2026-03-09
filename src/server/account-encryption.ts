@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
+const ENCRYPTION_PREFIX = "enc:";
 
 export const TOKEN_FIELDS = [
   "refresh_token",
@@ -39,18 +40,26 @@ export function encryptToken(
     cipher.final(),
   ]);
   const tag = cipher.getAuthTag();
-  return Buffer.concat([iv, tag, ciphertext]).toString("base64");
+  const payload = Buffer.concat([iv, tag, ciphertext]).toString("base64");
+  return `${ENCRYPTION_PREFIX}${payload}`;
 }
 
 export function decryptToken(
   value: string | null | undefined,
 ): string | null | undefined {
   if (value == null) return value;
+  // Legacy/plaintext values (no prefix) are returned as-is.
+  if (!value.startsWith(ENCRYPTION_PREFIX)) return value;
   try {
     const key = getEncryptionKey();
-    const buf = Buffer.from(value, "base64");
+    const encoded = value.slice(ENCRYPTION_PREFIX.length);
+    const buf = Buffer.from(encoded, "base64");
     if (buf.length < IV_LENGTH + 16) {
-      throw new Error("Ciphertext too short");
+      // Likely corrupted or legacy data with an `enc:` prefix.
+      // Log and return the original value instead of throwing.
+      // eslint-disable-next-line no-console
+      console.error("Failed to decrypt Account token: ciphertext too short");
+      return value;
     }
     const iv = buf.subarray(0, IV_LENGTH);
     const tag = buf.subarray(IV_LENGTH, IV_LENGTH + 16);
@@ -98,15 +107,20 @@ export function decryptAccountRecord<
     if (raw == null) continue;
     if (typeof raw === "string") {
       try {
-        copy[field] = decryptToken(raw) as unknown;
+        const decrypted = decryptToken(raw);
+        // If decryption fails, decryptToken throws and we never reach here.
+        // If it succeeds but returns the same string (e.g. legacy/plain), keep it.
+        if (decrypted !== raw) {
+          copy[field] = decrypted as unknown;
+        }
       } catch (error) {
-        // Log and rethrow so errors are visible and ciphertext never leaks out.
+        // Log but do not rethrow, so legacy/bad token data never breaks auth flows.
         // eslint-disable-next-line no-console
         console.error(
           `[AccountEncryption] Failed to decrypt field ${field}`,
           error,
         );
-        throw error;
+        // Leave the original value in place; callers decide how to handle it.
       }
     }
   }

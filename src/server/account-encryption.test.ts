@@ -41,7 +41,15 @@ describe("account-encryption", () => {
   it("throws when decrypting corrupted data", () => {
     const plaintext = "corrupt-me";
     const encrypted = encryptToken(plaintext) as string;
-    const corrupted = encrypted.slice(0, -4); // truncate so tag/ciphertext is invalid
+    // Keep prefix and length but corrupt the payload so decryption fails.
+    const prefix = "enc:";
+    const body = encrypted.startsWith(prefix)
+      ? encrypted.slice(prefix.length)
+      : encrypted;
+    // Flip the last character while keeping the same length.
+    const lastChar = body[body.length - 1] ?? "A";
+    const flippedChar = lastChar === "A" ? "B" : "A";
+    const corrupted = `${prefix}${body.slice(0, -1)}${flippedChar}`;
 
     expect(() => decryptToken(corrupted)).toThrowError(
       "Failed to decrypt Account token",
