@@ -41,7 +41,15 @@ describe("account-encryption", () => {
   it("throws when decrypting corrupted data", () => {
     const plaintext = "corrupt-me";
     const encrypted = encryptToken(plaintext) as string;
-    const corrupted = encrypted.slice(0, -4); // truncate so tag/ciphertext is invalid
+    // Keep prefix and length but corrupt the payload so decryption fails.
+    const prefix = "enc:";
+    const body = encrypted.startsWith(prefix)
+      ? encrypted.slice(prefix.length)
+      : encrypted;
+    // Flip the last character while keeping the same length.
+    const lastChar = body[body.length - 1] ?? "A";
+    const flippedChar = lastChar === "A" ? "B" : "A";
+    const corrupted = `${prefix}${body.slice(0, -1)}${flippedChar}`;
 
     expect(() => decryptToken(corrupted)).toThrowError(
       "Failed to decrypt Account token",
@@ -99,5 +107,32 @@ describe("account-encryption", () => {
     expect(decrypted.refresh_token).toBeNull();
     expect(decrypted.access_token).toBeUndefined();
     expect(decrypted.id_token).toBe("value");
+  });
+
+  it("returns plaintext values as-is in decryptToken", () => {
+    const plaintext = "plaintext-value";
+    const decrypted = decryptToken(plaintext);
+    expect(decrypted).toBe(plaintext);
+  });
+
+  it("does not attempt to decrypt legacy tokens without prefix", () => {
+    const legacyToken = "legacy-opaque-token-from-before-encryption";
+    const decrypted = decryptToken(legacyToken);
+    expect(decrypted).toBe(legacyToken);
+  });
+
+  it("throws on corrupted IV (too short ciphertext)", () => {
+    const plaintext = "iv-too-short";
+    const encrypted = encryptToken(plaintext) as string;
+    const prefix = "enc:";
+    const body = encrypted.startsWith(prefix)
+      ? encrypted.slice(prefix.length)
+      : encrypted;
+    // Drop a chunk from the body so total length is too short.
+    const corrupted = `${prefix}${body.slice(0, Math.max(0, body.length - 8))}`;
+
+    expect(() => decryptToken(corrupted)).toThrowError(
+      "Failed to decrypt Account token",
+    );
   });
 });

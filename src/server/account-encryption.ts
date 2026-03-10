@@ -2,6 +2,19 @@ import crypto from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
+/**
+ * Prefix used to mark values that have been encrypted by this module.
+ *
+ * Security model:
+ * - Values starting with `enc:` are treated as ciphertext produced by `encryptToken`
+ *   and MUST decrypt successfully with the current key, otherwise an error is thrown.
+ * - Values without this prefix are treated as legacy/plaintext and are returned as-is.
+ *
+ * NOTE: There is no supported “legacy encrypted without prefix” format in this app.
+ * Any token that was stored before encryption was added is plain text, and any token
+ * that should be encrypted MUST be written with this prefix going forward.
+ */
+const ENCRYPTION_PREFIX = "enc:";
 
 export const TOKEN_FIELDS = [
   "refresh_token",
@@ -39,16 +52,20 @@ export function encryptToken(
     cipher.final(),
   ]);
   const tag = cipher.getAuthTag();
-  return Buffer.concat([iv, tag, ciphertext]).toString("base64");
+  const payload = Buffer.concat([iv, tag, ciphertext]).toString("base64");
+  return `${ENCRYPTION_PREFIX}${payload}`;
 }
 
 export function decryptToken(
   value: string | null | undefined,
 ): string | null | undefined {
   if (value == null) return value;
+  // Legacy/plaintext values (no prefix) are returned as-is and never decrypted.
+  if (!value.startsWith(ENCRYPTION_PREFIX)) return value;
   try {
     const key = getEncryptionKey();
-    const buf = Buffer.from(value, "base64");
+    const encoded = value.slice(ENCRYPTION_PREFIX.length);
+    const buf = Buffer.from(encoded, "base64");
     if (buf.length < IV_LENGTH + 16) {
       throw new Error("Ciphertext too short");
     }
@@ -64,8 +81,6 @@ export function decryptToken(
     return decrypted.toString("utf8");
   } catch (error) {
     console.error("Failed to decrypt Account token", error);
-    // Do not leak ciphertext back to callers; fail hard.
-    // Callers are responsible for catching and handling.
     throw new Error("Failed to decrypt Account token");
   }
 }
@@ -98,9 +113,14 @@ export function decryptAccountRecord<
     if (raw == null) continue;
     if (typeof raw === "string") {
       try {
-        copy[field] = decryptToken(raw) as unknown;
+        const decrypted = decryptToken(raw);
+        // If decryption fails, decryptToken throws and we never reach here.
+        // If it succeeds but returns the same string (e.g. legacy/plain), keep it.
+        if (decrypted !== raw) {
+          copy[field] = decrypted as unknown;
+        }
       } catch (error) {
-        // Log and rethrow so errors are visible and ciphertext never leaks out.
+        // Log and rethrow so that corrupted encrypted tokens are never silently accepted.
         // eslint-disable-next-line no-console
         console.error(
           `[AccountEncryption] Failed to decrypt field ${field}`,
