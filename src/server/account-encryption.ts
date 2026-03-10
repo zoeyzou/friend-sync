@@ -4,9 +4,15 @@ const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
 /**
  * Prefix used to mark values that have been encrypted by this module.
- * - Values starting with `enc:` are treated as ciphertext and must decrypt successfully,
- *   otherwise an error is thrown.
+ *
+ * Security model:
+ * - Values starting with `enc:` are treated as ciphertext produced by `encryptToken`
+ *   and MUST decrypt successfully with the current key, otherwise an error is thrown.
  * - Values without this prefix are treated as legacy/plaintext and are returned as-is.
+ *
+ * NOTE: There is no supported “legacy encrypted without prefix” format in this app.
+ * Any token that was stored before encryption was added is plain text, and any token
+ * that should be encrypted MUST be written with this prefix going forward.
  */
 const ENCRYPTION_PREFIX = "enc:";
 

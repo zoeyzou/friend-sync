@@ -111,13 +111,14 @@ describe("account-encryption", () => {
 
   it("returns plaintext values as-is in decryptToken", () => {
     const plaintext = "plaintext-value";
-    const encrypted = encryptToken(plaintext) as string;
-    const prefix = "enc:";
-    const body = encrypted.startsWith(prefix)
-      ? encrypted.slice(prefix.length)
-      : encrypted;
-    const decrypted = decryptToken(encrypted);
+    const decrypted = decryptToken(plaintext);
     expect(decrypted).toBe(plaintext);
+  });
+
+  it("does not attempt to decrypt legacy tokens without prefix", () => {
+    const legacyToken = "legacy-opaque-token-from-before-encryption";
+    const decrypted = decryptToken(legacyToken);
+    expect(decrypted).toBe(legacyToken);
   });
 
   it("throws on corrupted IV (too short ciphertext)", () => {
