@@ -47,11 +47,14 @@ export const authConfig = {
   trustHost: true,
   callbacks: {
     jwt({ token, user, profile }) {
-      if (profile?.id) {
-        token.id = profile.id; // Capture Discord user ID
-      }
-      if (user) {
+      // Ensure token.id is always set so the JWT is valid and the session cookie is written.
+      // user is only passed on sign-in; token.sub is the provider's user id.
+      if (user?.id) {
         token.id = user.id;
+      } else if (profile?.id) {
+        token.id = profile.id;
+      } else if (!token.id && token.sub) {
+        token.id = token.sub;
       }
       return token;
     },
@@ -59,12 +62,12 @@ export const authConfig = {
       ...session,
       user: {
         ...session.user,
-        id: token.id as string,
+        id: (token.id as string) ?? (token.sub as string) ?? "",
       },
     }),
   },
 
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: "/auth/signin",
   },
