@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { env } from "~/env";
 
 export async function GET(request: Request) {
   const cookieHeader = request.headers.get("cookie") ?? "";
@@ -8,13 +9,8 @@ export async function GET(request: Request) {
     .map((c) => c.trim().split("=")[0])
     .filter(Boolean);
 
-  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
-  const secretSource =
-    process.env.AUTH_SECRET != null
-      ? "AUTH_SECRET"
-      : process.env.NEXTAUTH_SECRET != null
-        ? "NEXTAUTH_SECRET"
-        : "missing";
+  const secret = env.AUTH_SECRET ?? "";
+  const secretSource = "AUTH_SECRET";
 
   let tokenPresent = false;
   let tokenError: string | null = null;

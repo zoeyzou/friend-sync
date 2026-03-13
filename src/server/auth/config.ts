@@ -2,6 +2,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
+import { env } from "~/env";
 import { db } from "~/server/db";
 
 /**
@@ -44,6 +45,7 @@ export const authConfig = {
      */
   ],
   adapter: PrismaAdapter(db),
+  secret: env.AUTH_SECRET,
   trustHost: true,
   callbacks: {
     jwt({ token, user, profile }) {
